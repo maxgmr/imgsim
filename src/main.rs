@@ -1,7 +1,7 @@
 use clap::{command, Arg};
-use std::path::PathBuf;
+use std::{path::PathBuf, process};
 
-use imgsim::get_imgsim_options;
+use imgsim::ImgsimOptions;
 
 fn main() {
     let match_result = command!()
@@ -31,5 +31,11 @@ fn main() {
         )
         .get_matches();
 
-    let imgsim_options = get_imgsim_options(match_result);
+    let imgsim_options = match ImgsimOptions::build(match_result) {
+        Ok(imgsim_options) => imgsim_options,
+        Err(persistence_error) => {
+            eprintln!("{}", persistence_error.to_string());
+            process::exit(1);
+        }
+    };
 }

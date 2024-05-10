@@ -1,57 +1,57 @@
 #![warn(missing_docs)]
 
 use clap::ArgMatches;
+use serde::Deserialize;
 use std::{env, fs, path::Path, path::PathBuf, process, result::Result};
-use toml::Table;
+
+// #[path = "./errors.rs"]
+// mod errors;
+use super::errors::PersistenceError;
 
 const CONFIG_PATH_STR: &str = "./config/config.toml";
-const DEFAULT_PATH_STR: &str = "./config/default.toml";
 
-pub enum PixelsimAlg {
-    Euclidean,
+#[derive(Debug, Deserialize)]
+struct Settings {
+    debug: bool,
 }
 
-pub enum ClusteringAlg {
-    Kmeans,
-}
-
-pub enum SimilarityAlg {
-    Coloursim,
-}
-
-pub struct ImgsimOptions {
+#[derive(Debug, Deserialize)]
+struct Args {
     input_dir: PathBuf,
-    pixelsim_alg: PixelsimAlg,
-    clustering_alg: ClusteringAlg,
-    similarity_alg: SimilarityAlg,
+    pixelsim_alg: String,
+    clustering_alg: String,
+    similarity_alg: String,
+}
+
+#[derive(Debug, Deserialize)]
+pub struct ImgsimOptions {
+    args: Args,
+    settings: Settings,
 }
 impl ImgsimOptions {
-    fn load_config() -> Result<Table, &'static str> {
-        let config_path = Path::new(CONFIG_PATH_STR);
-        let default_path = Path::new(DEFAULT_PATH_STR);
-        // TODO: Overwrite config.toml with contents of default.toml
-        //     - For now, just use default.toml
-        if default_path.is_file() {
-            let file_text = match fs::read_to_string(default_path) {
-                Ok(text) => text,
-                _ => return Err("Error: Could not read config file"),
-            };
-            match file_text.parse::<Table>() {
-                Ok(table) => Ok(table),
-                _ => return Err("Error: Could not read config file"),
-            }
+    pub fn build(arg_matches: ArgMatches) -> Result<ImgsimOptions, PersistenceError> {
+        // Load config
+        let config_path = PathBuf::from(CONFIG_PATH_STR);
+        let config_toml_str = if let Ok(string) = fs::read_to_string(&config_path) {
+            string
         } else {
-            Err("Error: Could not find config files")
-        }
-    }
+            return Err(PersistenceError::ReadFileError(config_path));
+        };
+        let mut imgsim_options: ImgsimOptions = match toml::from_str(&config_toml_str) {
+            Ok(toml) => toml,
+            Err(toml_error) => {
+                return Err(PersistenceError::DeserializeError(String::from(
+                    toml_error.message(),
+                )));
+            }
+        };
 
-    pub fn build(arg_matches: ArgMatches) -> ImgsimOptions {
-        Self::load_config();
         // Get input_dir (default = current working directory)
         let working_directory: PathBuf = match env::current_dir() {
             Ok(dir) => dir,
             Err(_) => {
-                eprintln!("Error: Current directory does not exist, or there are insufficient permissions to access the current directory.");
+                // TODO: Propagate error
+                eprintln!("Error: Working directory does not exist, or there are insufficient permissions to access the current directory.");
                 process::exit(1);
             }
         };
@@ -71,12 +71,26 @@ impl ImgsimOptions {
             process::exit(1);
         };
 
-        // TEMP
-        ImgsimOptions {
-            input_dir: PathBuf::from(input_dir),
-            pixelsim_alg: PixelsimAlg::Euclidean,
-            clustering_alg: ClusteringAlg::Kmeans,
-            similarity_alg: SimilarityAlg::Coloursim,
-        }
+        return Ok(imgsim_options);
+    }
+
+    pub fn input_dir(&self) -> &Path {
+        &self.args.input_dir
+    }
+
+    pub fn pixelsim_alg(&self) -> &str {
+        &self.args.pixelsim_alg
+    }
+
+    pub fn clustering_alg(&self) -> &str {
+        &self.args.clustering_alg
+    }
+
+    pub fn similarity_alg(&self) -> &str {
+        &self.args.similarity_alg
+    }
+
+    pub fn debug(&self) -> bool {
+        self.settings.debug
     }
 }

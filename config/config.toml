@@ -1,0 +1,8 @@
+[args]
+input_dir = "" # can't have default- dependent on OS
+pixelsim_alg = "euclidean" # default = "euclidean"
+clustering_alg = "kmeans" # default = "kmeans"
+similarity_alg = "coloursim" # default = "coloursim"
+
+[settings]
+debug = true # default = false
