@@ -1,9 +1,14 @@
 use std::{fmt, path::PathBuf};
 
 #[derive(Debug)]
+
+/// All the possible persistence-related errors.
 pub enum PersistenceError {
+    /// Sent when unable to read a file, including the offending file path.
     ReadFileError(PathBuf),
+    /// Sent when unable to write a file, including the offending file path.
     WriteFileError(PathBuf),
+    /// Sent when unable to deserialise a file. Includes toml::de::Error.message().
     DeserializeError(String),
 }
 impl fmt::Display for PersistenceError {
