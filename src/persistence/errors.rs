@@ -1,3 +1,5 @@
+#![warn(missing_docs)]
+
 use std::{fmt, path::PathBuf};
 
 #[derive(Debug)]

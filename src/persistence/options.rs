@@ -2,7 +2,7 @@
 
 use clap::ArgMatches;
 use serde::Deserialize;
-use std::{env, fs, path::Path, path::PathBuf, process, result::Result};
+use std::{env, fs, path::Path, path::PathBuf, result::Result};
 
 use super::super::{
     clustering::algs::ClusteringAlg, pixelsim::algs::PixelsimAlg, similarity::algs::SimilarityAlg,
@@ -98,18 +98,22 @@ impl ImgsimOptions {
         &self.args.input_dir
     }
 
+    /// Return the algorithm used to determine image pixel similarity.
     pub fn pixelsim_alg(&self) -> &PixelsimAlg {
         &self.args.pixelsim_alg
     }
 
+    /// Return the algorithm used to determine pixel clustering.
     pub fn clustering_alg(&self) -> &ClusteringAlg {
         &self.args.clustering_alg
     }
 
+    /// Return the algorithm used to determine image similarity.
     pub fn similarity_alg(&self) -> &SimilarityAlg {
         &self.args.similarity_alg
     }
 
+    /// If `true`, print debug messages.
     pub fn debug(&self) -> bool {
         self.settings.debug
     }
