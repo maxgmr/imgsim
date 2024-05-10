@@ -41,7 +41,7 @@ impl ImgsimOptions {
         let config_toml_str = if let Ok(string) = fs::read_to_string(&config_path) {
             string
         } else {
-            return Err(PersistenceError::ReadFileError(config_path));
+            return Err(PersistenceError::ReadFileError(Some(config_path)));
         };
 
         let mut imgsim_options: ImgsimOptions = match toml::from_str(&config_toml_str) {
@@ -53,33 +53,43 @@ impl ImgsimOptions {
             }
         };
 
-        // Get input_dir (default = current working directory)
+        if imgsim_options.debug() {
+            println!("imgsim_options parsed from config.toml:");
+            dbg!(&imgsim_options);
+        }
+
+        // Get working directory to use if no input_dir arg
         let working_directory: PathBuf = match env::current_dir() {
             Ok(dir) => dir,
             Err(_) => {
-                // TODO: Propagate error
-                eprintln!("Error: Working directory does not exist, or there are insufficient permissions to access the current directory.");
-                process::exit(1);
+                return Err(PersistenceError::ReadFileError(None));
             }
         };
 
-        let input_dir_arg: &PathBuf = arg_matches
-            .get_one::<PathBuf>("input_dir")
-            .unwrap_or(&working_directory);
+        // Default to working dir
+        if imgsim_options.args.input_dir.to_str().unwrap().len() == 0 {
+            imgsim_options.args.input_dir = working_directory
+        }
 
-        if !input_dir_arg.exists() {
-            let input_dir_str = if let Some(dir_str) = input_dir_arg.to_str() {
-                dir_str
-            } else {
-                eprintln!("Error: Problem with input directory (likely does not exist).");
-                process::exit(1);
-            };
-            eprintln!("Error: Input directory \"{input_dir_str}\" does not exist.");
-            process::exit(1);
+        // Get input_dir arg from cli
+        let input_dir_cli_arg: Option<&PathBuf> = arg_matches.get_one::<PathBuf>("input_dir");
+
+        // If input_dir cli arg given and exists, replace input_dir from config.toml
+        // Return ReadFileError if input directory doesn't exist
+        if let Some(input_dir_cli_arg_unwrapped) = input_dir_cli_arg {
+            if !input_dir_cli_arg_unwrapped.exists() {
+                return Err(PersistenceError::ReadFileError(Some(PathBuf::from(
+                    input_dir_cli_arg_unwrapped,
+                ))));
+            }
+            imgsim_options.args.input_dir = PathBuf::from(input_dir_cli_arg_unwrapped);
         };
 
-        dbg!(&imgsim_options);
-
+        // Debug imgsim_options
+        if imgsim_options.debug() {
+            println!("imgsim_options updated by cli args:");
+            dbg!(&imgsim_options);
+        }
         return Ok(imgsim_options);
     }
 

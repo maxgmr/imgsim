@@ -1,5 +1,5 @@
 [args]
-input_dir = "" # can't have default- dependent on OS
+input_dir = "" # default = ""; this defaults to the current working directory. Change with caution as paths are OS-dependent. Better to specify in cli args.
 pixelsim_alg = "Euclidean" # default = "euclidean"
 clustering_alg = "KMeans" # default = "kmeans"
 similarity_alg = "ColourSim" # default = "coloursim"
