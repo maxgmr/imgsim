@@ -5,8 +5,6 @@
 
 #![warn(missing_docs)]
 
-use clap::ArgMatches;
-
 mod clustering;
 mod persistence;
 mod pixelsim;

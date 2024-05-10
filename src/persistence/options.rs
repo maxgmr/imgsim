@@ -4,11 +4,10 @@ use clap::ArgMatches;
 use serde::Deserialize;
 use std::{env, fs, path::Path, path::PathBuf, process, result::Result};
 
-// #[path = "./errors.rs"]
-// mod errors;
+use super::super::{
+    clustering::algs::ClusteringAlg, pixelsim::algs::PixelsimAlg, similarity::algs::SimilarityAlg,
+};
 use super::errors::PersistenceError;
-
-const CONFIG_PATH_STR: &str = "./config/config.toml";
 
 #[derive(Debug, Deserialize)]
 struct Settings {
@@ -18,25 +17,33 @@ struct Settings {
 #[derive(Debug, Deserialize)]
 struct Args {
     input_dir: PathBuf,
-    pixelsim_alg: String,
-    clustering_alg: String,
-    similarity_alg: String,
+    pixelsim_alg: PixelsimAlg,
+    clustering_alg: ClusteringAlg,
+    similarity_alg: SimilarityAlg,
 }
 
+/// A variety of options and parameters that determine how imgsim acts. Values are accessed through the methods.
 #[derive(Debug, Deserialize)]
 pub struct ImgsimOptions {
     args: Args,
     settings: Settings,
 }
 impl ImgsimOptions {
-    pub fn build(arg_matches: ArgMatches) -> Result<ImgsimOptions, PersistenceError> {
+    /// Create a new ImgsimOptions. Return [PersistenceError] on failure to read file or deserialise.
+    ///
+    /// Argument `config_path_str` must point to a valid `.toml` file.
+    pub fn build(
+        config_path_str: &str,
+        arg_matches: ArgMatches,
+    ) -> Result<ImgsimOptions, PersistenceError> {
         // Load config
-        let config_path = PathBuf::from(CONFIG_PATH_STR);
+        let config_path = PathBuf::from(config_path_str);
         let config_toml_str = if let Ok(string) = fs::read_to_string(&config_path) {
             string
         } else {
             return Err(PersistenceError::ReadFileError(config_path));
         };
+
         let mut imgsim_options: ImgsimOptions = match toml::from_str(&config_toml_str) {
             Ok(toml) => toml,
             Err(toml_error) => {
@@ -56,12 +63,12 @@ impl ImgsimOptions {
             }
         };
 
-        let input_dir: &PathBuf = arg_matches
+        let input_dir_arg: &PathBuf = arg_matches
             .get_one::<PathBuf>("input_dir")
             .unwrap_or(&working_directory);
 
-        if !input_dir.exists() {
-            let input_dir_str = if let Some(dir_str) = input_dir.to_str() {
+        if !input_dir_arg.exists() {
+            let input_dir_str = if let Some(dir_str) = input_dir_arg.to_str() {
                 dir_str
             } else {
                 eprintln!("Error: Problem with input directory (likely does not exist).");
@@ -71,22 +78,25 @@ impl ImgsimOptions {
             process::exit(1);
         };
 
+        dbg!(&imgsim_options);
+
         return Ok(imgsim_options);
     }
 
+    /// Return the directory of images imgsim compares.
     pub fn input_dir(&self) -> &Path {
         &self.args.input_dir
     }
 
-    pub fn pixelsim_alg(&self) -> &str {
+    pub fn pixelsim_alg(&self) -> &PixelsimAlg {
         &self.args.pixelsim_alg
     }
 
-    pub fn clustering_alg(&self) -> &str {
+    pub fn clustering_alg(&self) -> &ClusteringAlg {
         &self.args.clustering_alg
     }
 
-    pub fn similarity_alg(&self) -> &str {
+    pub fn similarity_alg(&self) -> &SimilarityAlg {
         &self.args.similarity_alg
     }
 

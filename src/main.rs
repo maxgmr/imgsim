@@ -3,6 +3,8 @@ use std::{path::PathBuf, process};
 
 use imgsim::ImgsimOptions;
 
+const CONFIG_PATH_STR: &str = "./config/config.toml";
+
 fn main() {
     let match_result = command!()
         .about("A tool that finds similar images through various methods.")
@@ -31,7 +33,7 @@ fn main() {
         )
         .get_matches();
 
-    let imgsim_options = match ImgsimOptions::build(match_result) {
+    let imgsim_options = match ImgsimOptions::build(CONFIG_PATH_STR, match_result) {
         Ok(imgsim_options) => imgsim_options,
         Err(persistence_error) => {
             eprintln!("{}", persistence_error.to_string());
