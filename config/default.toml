@@ -1,0 +1,7 @@
+[default-args]
+pixelsim_alg = "euclidean"
+clustering_alg = "kmeans"
+similarity_alg = "coloursim"
+
+[misc-settings]
+debug = true
