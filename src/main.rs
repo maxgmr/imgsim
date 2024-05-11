@@ -31,6 +31,13 @@ fn main() {
                 .long("similarity")
                 .help("Choose the algorithm for image similarity"),
         )
+        .arg(
+            Arg::new("verbose")
+                .short('v')
+                .long("verbose")
+                .action(clap::ArgAction::SetTrue)
+                .help("Print more messages to terminal")
+        )
         .get_matches();
 
     let imgsim_options = match ImgsimOptions::build(CONFIG_PATH_STR, match_result) {
@@ -48,5 +55,17 @@ fn main() {
             process::exit(1);
         }
     };
+    if imgsim_options.debug() || imgsim_options.verbose() {
+        println!(
+            "{} images loaded from {:?}:\n{}",
+            images.len(),
+            imgsim_options.input_dir(),
+            images
+                .iter()
+                .map(|image| format!("\t{}", image.name()))
+                .collect::<Vec<String>>()
+                .join("\n")
+        )
+    }
     process::exit(0);
 }

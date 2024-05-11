@@ -15,6 +15,7 @@ use super::errors::PersistenceError;
 #[derive(Debug, Deserialize)]
 struct Settings {
     debug: bool,
+    verbose: bool,
 }
 
 #[derive(Debug, Deserialize)]
@@ -129,6 +130,9 @@ impl ImgsimOptions {
             imgsim_options.args.similarity_alg = arg;
         }
 
+        // update verbose
+        imgsim_options.settings.verbose = arg_matches.get_flag("verbose");
+
         // Debug imgsim_options
         if imgsim_options.debug() {
             println!("imgsim_options updated by cli args:");
@@ -160,5 +164,10 @@ impl ImgsimOptions {
     /// If `true`, print debug messages.
     pub fn debug(&self) -> bool {
         self.settings.debug
+    }
+
+    /// If `true`, print messages to terminal.
+    pub fn verbose(&self) -> bool {
+        self.settings.verbose
     }
 }

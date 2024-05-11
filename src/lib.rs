@@ -8,10 +8,12 @@
 use std::fmt::Debug;
 
 mod clustering;
+mod data;
 mod persistence;
 mod pixelsim;
 mod similarity;
 
+pub use data::imgsim_image::ImgsimImage;
 pub use persistence::errors::PersistenceError;
 pub use persistence::load_images::load_images;
 pub use persistence::options::ImgsimOptions;

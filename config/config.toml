@@ -1,8 +1,9 @@
 [args]
-input_dir = "" # default = ""; this defaults to the current working directory. Change with caution as paths are OS-dependent. Better to specify in cli args.
-pixelsim_alg = "Euclidean" # default = "euclidean"
-clustering_alg = "KMeans" # default = "kmeans"
-similarity_alg = "ColourSim" # default = "coloursim"
+input_dir = ""                  # default = ""; this defaults to the current working directory. Change with caution as paths are OS-dependent. Better to specify in cli args.
+pixelsim_alg = "Euclidean"      # default = "euclidean"
+clustering_alg = "KMeans"       # default = "kmeans"
+similarity_alg = "ColourSim"    # default = "coloursim"
 
 [settings]
-debug = true # default = false
+debug = true                    # default = false
+verbose = false                 # default = false; doesn't matter because it will be overwritten by cli flag
