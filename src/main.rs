@@ -1,7 +1,7 @@
 use clap::{command, Arg};
 use std::{path::PathBuf, process};
 
-use imgsim::ImgsimOptions;
+use imgsim::{load_images, ImgsimOptions};
 
 const CONFIG_PATH_STR: &str = "./config/config.toml";
 
@@ -40,4 +40,13 @@ fn main() {
             process::exit(1);
         }
     };
+
+    let images = match load_images(imgsim_options.input_dir()) {
+        Ok(images) => images,
+        Err(persistence_error) => {
+            eprintln!("{}", persistence_error.to_string());
+            process::exit(1);
+        }
+    };
+    process::exit(0);
 }

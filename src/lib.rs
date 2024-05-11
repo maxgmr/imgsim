@@ -13,6 +13,7 @@ mod pixelsim;
 mod similarity;
 
 pub use persistence::errors::PersistenceError;
+pub use persistence::load_images::load_images;
 pub use persistence::options::ImgsimOptions;
 
 /// Values that implement [MatchEnumAsStr] can compare their enum values to a given `&str` (case-insensitive)
