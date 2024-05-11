@@ -4,7 +4,6 @@ use clap::ArgMatches;
 use serde::Deserialize;
 use std::{env, fs, path::Path, path::PathBuf, result::Result};
 use strum::IntoEnumIterator;
-use strum_macros::EnumIter;
 
 use crate::MatchEnumAsStr;
 
