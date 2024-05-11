@@ -14,6 +14,8 @@ pub enum PersistenceError {
     DeserializeError(String),
     /// Sent when input directory is empty.
     EmptyInputDirError(Option<PathBuf>),
+    /// Sent when a file is given instead of a directory.
+    NotDirectoryError(Option<PathBuf>),
     /// Sent when an unknown option is given.
     UnknownOptionError(String),
 }
@@ -49,6 +51,13 @@ impl fmt::Display for PersistenceError {
                 write!(
                     f,
                     "EmptyInputDirError: No images in {} to compare.",
+                    path_buf_as_str(path_buf)
+                )
+            }
+            Self::NotDirectoryError(path_buf) => {
+                write!(
+                    f,
+                    "NotDirectoryError: Path {} is not a directory.",
                     path_buf_as_str(path_buf)
                 )
             }

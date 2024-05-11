@@ -78,13 +78,20 @@ impl ImgsimOptions {
         let input_dir_cli_arg: Option<&PathBuf> = arg_matches.get_one::<PathBuf>("input_dir");
 
         // If input_dir cli arg given and exists, replace input_dir from config.toml
-        // Return ReadFileError if input directory doesn't exist
+        // Return ReadFileError if input directory doesn't exist or isn't a directory
         if let Some(input_dir_cli_arg_unwrapped) = input_dir_cli_arg {
             if !input_dir_cli_arg_unwrapped.exists() {
                 return Err(PersistenceError::ReadFileError(Some(PathBuf::from(
                     input_dir_cli_arg_unwrapped,
                 ))));
             }
+
+            if !input_dir_cli_arg_unwrapped.is_dir() {
+                return Err(PersistenceError::NotDirectoryError(Some(PathBuf::from(
+                    input_dir_cli_arg_unwrapped,
+                ))));
+            }
+
             imgsim_options.args.input_dir = PathBuf::from(input_dir_cli_arg_unwrapped);
         };
 
