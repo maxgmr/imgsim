@@ -3,6 +3,10 @@
 use clap::ArgMatches;
 use serde::Deserialize;
 use std::{env, fs, path::Path, path::PathBuf, result::Result};
+use strum::IntoEnumIterator;
+use strum_macros::EnumIter;
+
+use crate::MatchEnumAsStr;
 
 use super::super::{
     clustering::algs::ClusteringAlg, pixelsim::algs::PixelsimAlg, similarity::algs::SimilarityAlg,
@@ -84,6 +88,40 @@ impl ImgsimOptions {
             }
             imgsim_options.args.input_dir = PathBuf::from(input_dir_cli_arg_unwrapped);
         };
+
+        // Update any config values with corresponding cli args
+        fn get_cli_arg<T: IntoEnumIterator + MatchEnumAsStr>(
+            arg_matches: &ArgMatches,
+            id: &str,
+        ) -> Option<T> {
+            let cli_arg_val = arg_matches.get_one::<String>(id);
+            if let Some(val) = cli_arg_val {
+                // match value to enum
+                for option in T::iter() {
+                    if option.match_enum_as_str(val) {
+                        return Some(option);
+                    }
+                }
+                None
+            } else {
+                None
+            }
+        }
+
+        // update pixelsim_alg if given in cli
+        if let Some(arg) = get_cli_arg::<PixelsimAlg>(&arg_matches, "pixelsim_alg") {
+            imgsim_options.args.pixelsim_alg = arg;
+        }
+
+        // update clustering_alg if given in cli
+        if let Some(arg) = get_cli_arg::<ClusteringAlg>(&arg_matches, "clustering_alg") {
+            imgsim_options.args.clustering_alg = arg;
+        }
+
+        // update similarity_alg if given in cli
+        if let Some(arg) = get_cli_arg::<SimilarityAlg>(&arg_matches, "similarity_alg") {
+            imgsim_options.args.similarity_alg = arg;
+        }
 
         // Debug imgsim_options
         if imgsim_options.debug() {

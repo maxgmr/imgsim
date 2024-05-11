@@ -14,6 +14,8 @@ pub enum PersistenceError {
     DeserializeError(String),
     /// Sent when input directory is empty.
     EmptyInputDirError(Option<PathBuf>),
+    /// Sent when an unknown option is given.
+    UnknownOptionError(String),
 }
 
 fn path_buf_as_str<'a>(path_buf: &'a Option<PathBuf>) -> &'a str {
@@ -48,6 +50,13 @@ impl fmt::Display for PersistenceError {
                     f,
                     "EmptyInputDirError: No images in {} to compare.",
                     path_buf_as_str(path_buf)
+                )
+            }
+            Self::UnknownOptionError(string) => {
+                write!(
+                    f,
+                    "UnknownOptionError: Given option \"{}\" does not match any known values.",
+                    string
                 )
             }
         }

@@ -1,9 +1,13 @@
 #![warn(missing_docs)]
 
 use serde::Deserialize;
+use strum_macros::EnumIter;
 
-#[derive(Debug, Deserialize)]
+use crate::MatchEnumAsStr;
+
+#[derive(Debug, Deserialize, EnumIter)]
 pub enum SimilarityAlg {
     #[serde(alias = "coloursim", alias = "colorsim")]
     ColourSim,
 }
+impl MatchEnumAsStr for SimilarityAlg {}
