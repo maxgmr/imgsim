@@ -31,7 +31,7 @@ pub fn alpha_only_dist(a_a: u8, a_b: u8) -> f32 {
 }
 
 pub fn euclidean(pixel_a: &Rgba<u8>, pixel_b: &Rgba<u8>) -> f32 {
-    let max_diff_for_normalisation: f32 = 260100.0;
+    let max_diff_for_normalisation: f32 = 195075.0;
     let ar = pixel_a[0] as f32;
     let ag = pixel_a[1] as f32;
     let ab = pixel_a[2] as f32;
@@ -39,15 +39,16 @@ pub fn euclidean(pixel_a: &Rgba<u8>, pixel_b: &Rgba<u8>) -> f32 {
     let bg = pixel_b[1] as f32;
     let bb = pixel_b[2] as f32;
     if pixel_a[3] != 0 && pixel_b[3] != 0 {
-        (((ar - br).powf(2.0) + (ag - bg).powf(2.0) + (ab - bb).powf(2.0)) as f32).sqrt()
-            / max_diff_for_normalisation.sqrt()
+        ((((ar - br).powf(2.0) + (ag - bg).powf(2.0) + (ab - bb).powf(2.0)) as f32)
+            / max_diff_for_normalisation)
+            .sqrt()
     } else {
         alpha_only_dist(pixel_a[3], pixel_b[3])
     }
 }
 
 pub fn redmean(pixel_a: &Rgba<u8>, pixel_b: &Rgba<u8>) -> f32 {
-    let max_diff_for_normalisation: f32 = 650250.0;
+    let max_diff_for_normalisation: f32 = 585225.0;
     let ar = pixel_a[0] as f32;
     let ag = pixel_a[1] as f32;
     let ab = pixel_a[2] as f32;
@@ -58,19 +59,19 @@ pub fn redmean(pixel_a: &Rgba<u8>, pixel_b: &Rgba<u8>) -> f32 {
     if pixel_a[3] != 0 && pixel_b[3] != 0 {
         let rmean = (ar + br) as f32 / 2 as f32;
 
-        let r_multiple = 2.0 + (rmean / 256.0);
+        let r_multiple = 2.0 + (rmean / 255.0);
         let g_multiple = 4.0;
-        let b_multiple = 2.0 + ((255.0 - rmean) / 256.0);
+        let b_multiple = 2.0 + ((255.0 - rmean) / 255.0);
 
         let delta_r_sq = (ar - br).powf(2.0);
         let delta_g_sq = (ag - bg).powf(2.0);
         let delta_b_sq = (ab - bb).powf(2.0);
 
-        ((r_multiple * delta_r_sq as f32)
+        (((r_multiple * delta_r_sq as f32)
             + (g_multiple * delta_g_sq as f32)
             + (b_multiple * delta_b_sq as f32))
+            / max_diff_for_normalisation)
             .sqrt()
-            / max_diff_for_normalisation.sqrt()
     } else {
         alpha_only_dist(pixel_a[3], pixel_b[3])
     }
@@ -80,6 +81,12 @@ pub fn redmean(pixel_a: &Rgba<u8>, pixel_b: &Rgba<u8>) -> f32 {
 mod test {
     use super::*;
     use pretty_assertions::assert_eq;
+
+    const WHITE: Rgba<u8> = Rgba([255, 255, 255, 255]);
+    const BLACK: Rgba<u8> = Rgba([0, 0, 0, 255]);
+
+    const PIXEL_A: Rgba<u8> = Rgba([63, 115, 41, 255]);
+    const PIXEL_B: Rgba<u8> = Rgba([23, 116, 86, 255]);
 
     #[test]
     fn aod_max() {
@@ -94,5 +101,41 @@ mod test {
     #[test]
     fn aod_misc() {
         assert_eq!(81.0 / 255.0, alpha_only_dist(42, 123))
+    }
+
+    #[test]
+    fn euclidean_max() {
+        assert_eq!(euclidean(&WHITE, &BLACK), 1.0);
+    }
+
+    #[test]
+    fn euclidean_min() {
+        assert_eq!(euclidean(&WHITE, &WHITE), 0.0);
+    }
+
+    #[test]
+    fn euclidean_misc() {
+        assert_eq!(
+            euclidean(&PIXEL_A, &PIXEL_B),
+            (3626.0 as f32 / 195075.0 as f32).sqrt()
+        );
+    }
+
+    #[test]
+    fn redmean_max() {
+        assert_eq!(redmean(&WHITE, &BLACK), 1.0);
+    }
+
+    #[test]
+    fn redmean_min() {
+        assert_eq!(redmean(&BLACK, &BLACK), 0.0)
+    }
+
+    #[test]
+    fn redmean_misc() {
+        assert_eq!(
+            redmean(&PIXEL_A, &PIXEL_B),
+            (2347870.0 as f32 / 149232375 as f32).sqrt()
+        );
     }
 }
