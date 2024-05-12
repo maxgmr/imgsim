@@ -13,6 +13,8 @@ mod persistence;
 mod pixeldist;
 mod similarity;
 
+// TODO organise order
+pub use clustering::algs::get_clusters;
 pub use clustering::algs::ClusteringAlg;
 pub use data::imgsim_image::ImgsimImage;
 pub use persistence::errors::PersistenceError;

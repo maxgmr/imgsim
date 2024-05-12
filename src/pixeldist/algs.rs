@@ -4,7 +4,7 @@ use image::Rgba;
 use serde::Deserialize;
 use strum_macros::EnumIter;
 
-use crate::MatchEnumAsStr;
+use crate::{ImgsimOptions, MatchEnumAsStr};
 
 #[derive(Debug, Deserialize, EnumIter)]
 /// Denotes the type of pixel distance algorithm being utilised.
@@ -18,9 +18,13 @@ pub enum PixeldistAlg {
 }
 impl MatchEnumAsStr for PixeldistAlg {}
 
-/// Get the colour distance between two pixels. The method by which this distance is calculated is determined by [PixeldistAlg] `pixeldist_alg`.
-pub fn get_pixeldist(pixel_a: &Rgba<u8>, pixel_b: &Rgba<u8>, pixeldist_alg: &PixeldistAlg) -> f32 {
-    match pixeldist_alg {
+/// Get the colour distance between two pixels. The method by which this distance is calculated is determined by [ImgsimOptions].
+pub fn get_pixeldist(
+    pixel_a: &Rgba<u8>,
+    pixel_b: &Rgba<u8>,
+    imgsim_options: &ImgsimOptions,
+) -> f32 {
+    match imgsim_options.pixeldist_alg() {
         PixeldistAlg::Euclidean => euclidean(pixel_a, pixel_b),
         PixeldistAlg::Redmean => redmean(pixel_a, pixel_b),
     }

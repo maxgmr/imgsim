@@ -7,3 +7,6 @@ similarity_alg = "ColourSim"    # default = "coloursim"
 [settings]
 debug = true                    # default = false
 verbose = false                 # default = false; doesn't matter because it will be overwritten by cli flag
+
+[agglomerativeoptions]
+tolerance = 0.5                 # default = 0.5; distance between pixels must be above this percentile to remain as separate groups

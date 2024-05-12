@@ -8,6 +8,11 @@ use strum::IntoEnumIterator;
 use crate::{ClusteringAlg, MatchEnumAsStr, PersistenceError, PixeldistAlg, SimilarityAlg};
 
 #[derive(Debug, Deserialize)]
+struct AgglomerativeOptions {
+    tolerance: f32,
+}
+
+#[derive(Debug, Deserialize)]
 struct Settings {
     debug: bool,
     verbose: bool,
@@ -26,6 +31,7 @@ struct Args {
 pub struct ImgsimOptions {
     args: Args,
     settings: Settings,
+    agglomerative_options: AgglomerativeOptions,
 }
 impl ImgsimOptions {
     /// Create a new ImgsimOptions. Return [PersistenceError] on failure to read file or deserialise.
@@ -164,5 +170,10 @@ impl ImgsimOptions {
     /// If `true`, print messages to terminal.
     pub fn verbose(&self) -> bool {
         self.settings.verbose
+    }
+
+    /// Return the tolerance of the agglomerative clustering algorithm.
+    pub fn agglo_tolerance(&self) -> f32 {
+        self.agglomerative_options.tolerance
     }
 }
