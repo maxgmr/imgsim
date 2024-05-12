@@ -13,10 +13,13 @@ mod persistence;
 mod pixeldist;
 mod similarity;
 
+pub use clustering::algs::ClusteringAlg;
 pub use data::imgsim_image::ImgsimImage;
 pub use persistence::errors::PersistenceError;
 pub use persistence::load_images::load_images;
 pub use persistence::options::ImgsimOptions;
+pub use pixeldist::algs::{get_pixeldist, PixeldistAlg};
+pub use similarity::algs::SimilarityAlg;
 
 /// Values that implement [MatchEnumAsStr] can compare their enum values to a given `&str` (case-insensitive)
 ///

@@ -5,12 +5,7 @@ use serde::Deserialize;
 use std::{env, fs, path::Path, path::PathBuf, result::Result};
 use strum::IntoEnumIterator;
 
-use crate::MatchEnumAsStr;
-
-use super::super::{
-    clustering::algs::ClusteringAlg, pixeldist::algs::PixeldistAlg, similarity::algs::SimilarityAlg,
-};
-use super::errors::PersistenceError;
+use crate::{ClusteringAlg, MatchEnumAsStr, PersistenceError, PixeldistAlg, SimilarityAlg};
 
 #[derive(Debug, Deserialize)]
 struct Settings {

@@ -48,7 +48,7 @@ fn main() {
         }
     };
 
-    let mut images = match load_images(imgsim_options.input_dir()) {
+    let images = match load_images(imgsim_options.input_dir()) {
         Ok(images) => images,
         Err(persistence_error) => {
             eprintln!("{}", persistence_error.to_string());
@@ -67,5 +67,10 @@ fn main() {
                 .join("\n")
         )
     }
+
+    for mut image in images {
+        image.build_pixeldist_factors(&imgsim_options);
+    }
+
     process::exit(0);
 }

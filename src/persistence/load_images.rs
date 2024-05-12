@@ -1,8 +1,8 @@
 use std::fs;
 use std::path::{Path, PathBuf};
 
-use super::super::data::imgsim_image::ImgsimImage;
-use super::errors::PersistenceError;
+use crate::ImgsimImage;
+use crate::PersistenceError;
 
 /// Loads vector of images from given directory
 pub fn load_images(input_dir_path: &Path) -> Result<Vec<ImgsimImage>, PersistenceError> {
@@ -12,7 +12,7 @@ pub fn load_images(input_dir_path: &Path) -> Result<Vec<ImgsimImage>, Persistenc
             entry.ok().and_then(|ok_entry| {
                 let path = ok_entry.path();
                 if path.is_file() {
-                    ImgsimImage::new(&path)
+                    ImgsimImage::new(path)
                 } else {
                     None
                 }
