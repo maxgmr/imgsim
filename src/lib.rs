@@ -1,5 +1,5 @@
 //! Image similarity-related tools for:
-//! * Pixel similarity
+//! * Pixel distance
 //! * Pixel clustering
 //! * Image comparison
 
@@ -10,7 +10,7 @@ use std::fmt::Debug;
 mod clustering;
 mod data;
 mod persistence;
-mod pixelsim;
+mod pixeldist;
 mod similarity;
 
 pub use data::imgsim_image::ImgsimImage;

@@ -7,18 +7,18 @@ use strum_macros::EnumIter;
 use crate::MatchEnumAsStr;
 
 #[derive(Debug, Deserialize, EnumIter)]
-pub enum PixelsimAlg {
+pub enum PixeldistAlg {
     #[serde(alias = "euclidean")]
     Euclidean,
     #[serde(alias = "redmean")]
     Redmean,
 }
-impl MatchEnumAsStr for PixelsimAlg {}
+impl MatchEnumAsStr for PixeldistAlg {}
 
-pub fn get_pixelsim(pixel_a: &Rgba<u8>, pixel_b: &Rgba<u8>, pixelsim_alg: PixelsimAlg) -> f32 {
-    match pixelsim_alg {
-        PixelsimAlg::Euclidean => euclidean(pixel_a, pixel_b),
-        PixelsimAlg::Redmean => redmean(pixel_a, pixel_b),
+pub fn get_pixeldist(pixel_a: &Rgba<u8>, pixel_b: &Rgba<u8>, pixeldist_alg: PixeldistAlg) -> f32 {
+    match pixeldist_alg {
+        PixeldistAlg::Euclidean => euclidean(pixel_a, pixel_b),
+        PixeldistAlg::Redmean => redmean(pixel_a, pixel_b),
     }
 }
 

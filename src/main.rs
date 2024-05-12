@@ -14,10 +14,10 @@ fn main() {
                 .help("The path to the directory of images you wish to compare (default: working directory)"),
         )
         .arg(
-            Arg::new("pixelsim_alg")
+            Arg::new("pixeldist_alg")
                 .short('p')
-                .long("pixelsim")
-                .help("Choose the algorithm for pixel similarity"),
+                .long("pixeldist")
+                .help("Choose the algorithm for pixel distance"),
         )
         .arg(
             Arg::new("clustering_alg")

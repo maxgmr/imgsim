@@ -8,7 +8,7 @@ use strum::IntoEnumIterator;
 use crate::MatchEnumAsStr;
 
 use super::super::{
-    clustering::algs::ClusteringAlg, pixelsim::algs::PixelsimAlg, similarity::algs::SimilarityAlg,
+    clustering::algs::ClusteringAlg, pixeldist::algs::PixeldistAlg, similarity::algs::SimilarityAlg,
 };
 use super::errors::PersistenceError;
 
@@ -21,7 +21,7 @@ struct Settings {
 #[derive(Debug, Deserialize)]
 struct Args {
     input_dir: PathBuf,
-    pixelsim_alg: PixelsimAlg,
+    pixeldist_alg: PixeldistAlg,
     clustering_alg: ClusteringAlg,
     similarity_alg: SimilarityAlg,
 }
@@ -115,9 +115,9 @@ impl ImgsimOptions {
             }
         }
 
-        // update pixelsim_alg if given in cli
-        if let Some(arg) = get_cli_arg::<PixelsimAlg>(&arg_matches, "pixelsim_alg") {
-            imgsim_options.args.pixelsim_alg = arg;
+        // update pixeldist_alg if given in cli
+        if let Some(arg) = get_cli_arg::<PixeldistAlg>(&arg_matches, "pixeldist_alg") {
+            imgsim_options.args.pixeldist_alg = arg;
         }
 
         // update clustering_alg if given in cli
@@ -147,8 +147,8 @@ impl ImgsimOptions {
     }
 
     /// Return the algorithm used to determine image pixel similarity.
-    pub fn pixelsim_alg(&self) -> &PixelsimAlg {
-        &self.args.pixelsim_alg
+    pub fn pixeldist_alg(&self) -> &PixeldistAlg {
+        &self.args.pixeldist_alg
     }
 
     /// Return the algorithm used to determine pixel clustering.
