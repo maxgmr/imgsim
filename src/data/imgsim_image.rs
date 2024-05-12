@@ -1,5 +1,6 @@
 #[warn(missing_docs)]
 use image::{ImageError, RgbaImage};
+use rayon::prelude::*;
 use std::path::{Path, PathBuf};
 
 /// An [image::RgbaImage] with metadata, similarity factors, and clusters.
@@ -54,6 +55,46 @@ impl ImgsimImage {
                 None
             }
         }
+    }
+
+    /// TODO Remove: For benchmarking only
+    pub fn darken_par(&mut self) {
+        let start_time = std::time::Instant::now();
+        self.rgba_image
+            .par_enumerate_pixels_mut()
+            .for_each(|(x, y, pixel)| {
+                let r = (0.3 * pixel[0] as f32) as u8;
+                let g = (0.3 * pixel[1] as f32) as u8;
+                let b = (0.3 * pixel[2] as f32) as u8;
+                *pixel = image::Rgba([r, b, g, pixel[3]]);
+            });
+        let elapsed = start_time.elapsed();
+        println!(
+            "darken_par time taken ({}x{}): {:.2?}",
+            self.rgba_image.height(),
+            self.rgba_image.width(),
+            elapsed
+        );
+    }
+
+    /// TODO Remove: For benchmarking only
+    pub fn darken(&mut self) {
+        let start_time = std::time::Instant::now();
+        self.rgba_image
+            .enumerate_pixels_mut()
+            .for_each(|(x, y, pixel)| {
+                let r = (0.3 * pixel[0] as f32) as u8;
+                let g = (0.3 * pixel[1] as f32) as u8;
+                let b = (0.3 * pixel[2] as f32) as u8;
+                *pixel = image::Rgba([r, b, g, pixel[3]]);
+            });
+        let elapsed = start_time.elapsed();
+        println!(
+            "darken time taken ({}x{}): {:.2?}",
+            self.rgba_image.height(),
+            self.rgba_image.width(),
+            elapsed
+        );
     }
 
     /// Returns the name of the image.

@@ -15,7 +15,8 @@ serde = { version = "1.0.201", features = ["derive"]}
 toml = "0.8.12"
 strum = "0.26"
 strum_macros = "0.26"
-image = "0.25.1"
+rayon = "1.10.0"
+image = {version = "0.25.1", features = ["rayon"]}
 
 [dev-dependencies]
 pretty_assertions = "1.4.0"
