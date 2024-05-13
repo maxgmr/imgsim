@@ -48,7 +48,7 @@ fn main() {
         }
     };
 
-    let mut images = match load_images(imgsim_options.input_dir()) {
+    let mut images = match load_images(&imgsim_options) {
         Ok(images) => images,
         Err(persistence_error) => {
             eprintln!("{}", persistence_error.to_string());

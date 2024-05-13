@@ -82,7 +82,6 @@ pub fn agglomerative(imgsim_image: &mut ImgsimImage, imgsim_options: &ImgsimOpti
         let b_cluster: usize = *new_cluster_lookup.get(factor.b_coords()).unwrap();
 
         if (a_cluster != b_cluster) && (factor.distance() < *nth_percentile_dist) {
-            // TODO try other way around for performance
             // a's cluster consumes b's cluster
             let mut b_cluster_items = take(new_pixel_clusters.get_mut(&b_cluster).unwrap());
             b_cluster_items.iter().for_each(|coords| {

@@ -1,18 +1,18 @@
 use std::fs;
 use std::path::{Path, PathBuf};
 
-use crate::ImgsimImage;
 use crate::PersistenceError;
+use crate::{ImgsimImage, ImgsimOptions};
 
 /// Loads vector of images from given directory
-pub fn load_images(input_dir_path: &Path) -> Result<Vec<ImgsimImage>, PersistenceError> {
-    let images = fs::read_dir(input_dir_path)
+pub fn load_images(imgsim_options: &ImgsimOptions) -> Result<Vec<ImgsimImage>, PersistenceError> {
+    let images = fs::read_dir(imgsim_options.input_dir())
         .unwrap()
         .filter_map(|entry| {
             entry.ok().and_then(|ok_entry| {
                 let path = ok_entry.path();
                 if path.is_file() {
-                    ImgsimImage::new(path)
+                    ImgsimImage::new(path, imgsim_options)
                 } else {
                     None
                 }
@@ -21,7 +21,7 @@ pub fn load_images(input_dir_path: &Path) -> Result<Vec<ImgsimImage>, Persistenc
         .collect::<Vec<ImgsimImage>>();
     if images.len() == 0 {
         Err(PersistenceError::EmptyInputDirError(Some(PathBuf::from(
-            input_dir_path,
+            imgsim_options.input_dir(),
         ))))
     } else {
         return Ok(images);

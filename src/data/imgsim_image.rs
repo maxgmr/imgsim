@@ -22,11 +22,22 @@ impl ImgsimImage {
     /// Returns [Option::None](std::option::Option) and prints a warning message if an image exists, but there was a problem reading the image.
     ///
     /// Returns [Option::None](std::option::Option) without printing a message if the file path does not link to an image.
-    pub fn new(image_path: PathBuf) -> Option<ImgsimImage> {
+    pub fn new(image_path: PathBuf, imgsim_options: &ImgsimOptions) -> Option<ImgsimImage> {
         match (image_path.file_name(), image::open(&image_path)) {
             (Some(file_name), Ok(image)) => {
                 if let Some(name) = file_name.to_str() {
-                    let rgba_image = image.to_rgba8();
+                    let rgba_image = if image.height() > imgsim_options.max_height()
+                        || image.width() > imgsim_options.max_width()
+                    {
+                        image
+                            .thumbnail(
+                                (imgsim_options.max_width() as f32 * 0.8) as u32,
+                                (imgsim_options.max_height() as f32 * 0.8) as u32,
+                            )
+                            .to_rgba8()
+                    } else {
+                        image.to_rgba8()
+                    };
                     let image_width = rgba_image.width();
                     let image_height = rgba_image.height();
                     Some(ImgsimImage {
@@ -142,7 +153,11 @@ impl ImgsimImage {
             println!(
                 "\"{}\": Built {} clusters in {:.2?}.",
                 self.name,
-                self.pixel_clusters.len(),
+                self.pixel_clusters
+                    .iter()
+                    .filter(|(k, v)| v.len() > 0)
+                    .collect::<BTreeMap<&usize, &Vec<(u32, u32)>>>()
+                    .len(),
                 elapsed_time
             );
         }

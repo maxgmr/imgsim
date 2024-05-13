@@ -16,6 +16,8 @@ struct AgglomerativeOptions {
 struct Settings {
     debug: bool,
     verbose: bool,
+    max_width: u32,
+    max_height: u32,
 }
 
 #[derive(Debug, Deserialize)]
@@ -169,6 +171,16 @@ impl ImgsimOptions {
     /// If `true`, print messages to terminal.
     pub fn verbose(&self) -> bool {
         self.settings.verbose
+    }
+
+    /// Return the max width of an input image;
+    pub fn max_width(&self) -> u32 {
+        self.settings.max_width
+    }
+
+    /// Return the max height of an input image.
+    pub fn max_height(&self) -> u32 {
+        self.settings.max_height
     }
 
     /// Return the tolerance of the agglomerative clustering algorithm.
