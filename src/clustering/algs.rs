@@ -50,7 +50,7 @@ pub fn agglomerative(imgsim_image: &mut ImgsimImage, imgsim_options: &ImgsimOpti
 
     if imgsim_options.debug() {
         println!(
-            "\"{}\": {}th-percentile distance = {}",
+            "\"{}\": {:.0}th-percentile distance = {}",
             imgsim_image.name(),
             imgsim_options.agglo_tolerance() * 100.0,
             nth_percentile_dist

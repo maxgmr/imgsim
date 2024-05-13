@@ -7,8 +7,9 @@ similarity_alg = "ColourSim"    # default = "coloursim"
 [settings]
 debug = true                    # default = false
 verbose = false                 # default = false; doesn't matter because it will be overwritten by cli flag
-max_width = 700                 # default = 800; in pixels. anything wider than this will be shrunk.
-max_height = 700                # default = 800; in pixels. anything taller than this will be shrunk.
+max_width = 600                 # default = 800; in pixels. anything wider than this will be shrunk.
+max_height = 600                # default = 800; in pixels. anything taller than this will be shrunk.
+output_dir = "./output/"        # default = "./output/"
 
 [agglomerative_options]
-tolerance = 0.9                 # default = 0.5; distance between pixels must be above this percentile to remain as separate groups
+tolerance = 0.6                 # default = 0.5; distance between pixels must be above this percentile to remain as separate groups

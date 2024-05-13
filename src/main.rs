@@ -71,6 +71,7 @@ fn main() {
     images.iter_mut().for_each(|image| {
         image.build_factors(&imgsim_options);
         image.build_clusters(&imgsim_options);
+        image.save_cluster_image(&imgsim_options);
     });
 
     process::exit(0);

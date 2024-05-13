@@ -3,7 +3,7 @@ use image::{ImageError, RgbaImage};
 use rayon::prelude::*;
 use std::{collections::BTreeMap, path::PathBuf, time::Instant};
 
-use crate::{get_clusters, get_pixeldist, ImgsimOptions};
+use crate::{get_clusters, get_pixeldist, helpers::hsl_to_rgb, ImgsimOptions};
 
 /// An [image::RgbaImage] with metadata, similarity factors, and clusters.
 pub struct ImgsimImage {
@@ -155,12 +155,44 @@ impl ImgsimImage {
                 self.name,
                 self.pixel_clusters
                     .iter()
-                    .filter(|(k, v)| v.len() > 0)
+                    .filter(|(_, v)| v.len() > 0)
                     .collect::<BTreeMap<&usize, &Vec<(u32, u32)>>>()
                     .len(),
                 elapsed_time
             );
         }
+    }
+
+    pub fn save_cluster_image(&self, imgsim_options: &ImgsimOptions) {
+        fn select_colour(number: usize) -> (u8, u8, u8) {
+            let hue = number as f32 * 137.508;
+            let sat = (((number as f32 * 137.508) % 360.0) / 360.0) * 50.0 + 50.0;
+            let lit = (((number as f32 * 137.508) % 360.0) / 360.0) * 20.0 + 40.0;
+            hsl_to_rgb(hue, sat, lit)
+        }
+
+        let mut cluster_diagram =
+            image::ImageBuffer::new(self.rgba_image.width(), self.rgba_image.height());
+        cluster_diagram
+            .enumerate_pixels_mut()
+            .for_each(|(x, y, pixel)| {
+                let cluster = self.cluster_lookup().get(&(x, y)).unwrap();
+                let (r, g, b) = select_colour(*cluster);
+                *pixel = image::Rgb([r, g, b]);
+            });
+        let mut save_path = PathBuf::from(imgsim_options.output_dir());
+
+        // TODO fix this, this sucks
+        let filename = if self.name.ends_with(".jpeg") {
+            format!("{}.png", &self.name[0..self.name.len() - 5])
+        } else if self.name.ends_with(".jpg") {
+            format!("{}.png", &self.name[0..self.name.len() - 4])
+        } else {
+            String::from(&self.name)
+        };
+
+        save_path.push(format!("clusters-{}", filename));
+        cluster_diagram.save(save_path).unwrap();
     }
 
     /// Returns the name of the image.

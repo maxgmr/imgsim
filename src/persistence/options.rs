@@ -18,6 +18,7 @@ struct Settings {
     verbose: bool,
     max_width: u32,
     max_height: u32,
+    output_dir: PathBuf,
 }
 
 #[derive(Debug, Deserialize)]
@@ -181,6 +182,11 @@ impl ImgsimOptions {
     /// Return the max height of an input image.
     pub fn max_height(&self) -> u32 {
         self.settings.max_height
+    }
+
+    /// Return the output directory path.
+    pub fn output_dir(&self) -> &PathBuf {
+        &self.settings.output_dir
     }
 
     /// Return the tolerance of the agglomerative clustering algorithm.
