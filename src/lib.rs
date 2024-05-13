@@ -16,7 +16,7 @@ mod similarity;
 // TODO organise order
 pub use clustering::algs::get_clusters;
 pub use clustering::algs::ClusteringAlg;
-pub use data::imgsim_image::ImgsimImage;
+pub use data::imgsim_image::{ImgsimImage, PixeldistFactor};
 pub use persistence::errors::PersistenceError;
 pub use persistence::load_images::load_images;
 pub use persistence::options::ImgsimOptions;

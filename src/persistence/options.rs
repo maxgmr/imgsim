@@ -60,7 +60,6 @@ impl ImgsimOptions {
 
         if imgsim_options.debug() {
             println!("imgsim_options parsed from config.toml:");
-            dbg!(&imgsim_options);
         }
 
         // Get working directory to use if no input_dir arg
