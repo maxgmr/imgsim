@@ -24,7 +24,8 @@ pub use pixeldist::algs::{get_pixeldist, PixeldistAlg};
 
 pub use clustering::algs::{get_clusters, ClusteringAlg};
 
-pub use similarity::algs::SimilarityAlg;
+pub use similarity::algs::{get_similarities, ImageSimilarityMatrix, SimilarityAlg};
+pub use similarity::errors::ImageSimilarityMatrixNoMatchError;
 
 /// Values that implement [MatchEnumAsStr] can compare their enum values to a given `&str` (case-insensitive)
 ///

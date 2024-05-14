@@ -1,7 +1,7 @@
 use clap::{command, Arg};
 use std::{path::PathBuf, process};
 
-use imgsim::{load_images, ImgsimOptions};
+use imgsim::{get_similarities, load_images, ImageSimilarityMatrix, ImgsimOptions};
 
 const CONFIG_PATH_STR: &str = "./config/config.toml";
 
@@ -74,5 +74,6 @@ fn main() {
         image.save_cluster_image(&imgsim_options);
     });
 
+    let image_similarity_matrix = get_similarities(&images, &imgsim_options);
     process::exit(0);
 }
