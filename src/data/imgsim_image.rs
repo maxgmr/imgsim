@@ -1,6 +1,7 @@
-#[warn(missing_docs)]
 use image::{ImageError, RgbaImage};
 use rayon::prelude::*;
+#[warn(missing_docs)]
+use regex::Regex;
 use std::{collections::BTreeMap, path::PathBuf, time::Instant};
 
 use crate::{get_clusters, get_pixeldist, helpers::hsl_to_rgb, ImgsimOptions};
@@ -182,14 +183,8 @@ impl ImgsimImage {
             });
         let mut save_path = PathBuf::from(imgsim_options.output_dir());
 
-        // TODO fix this, this sucks
-        let filename = if self.name.ends_with(".jpeg") {
-            format!("{}.png", &self.name[0..self.name.len() - 5])
-        } else if self.name.ends_with(".jpg") {
-            format!("{}.png", &self.name[0..self.name.len() - 4])
-        } else {
-            String::from(&self.name)
-        };
+        let ext_regex = Regex::new(r"\.(?:bmp|dib|dds|gif|hdr|ico|jpg|jpeg|tiff)$").unwrap();
+        let filename = ext_regex.replace(self.name(), ".png");
 
         save_path.push(format!("clusters-{}", filename));
         cluster_diagram.save(save_path).unwrap();
