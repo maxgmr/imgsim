@@ -1,5 +1,7 @@
 #![warn(missing_docs)]
+//! Various helper functions for different `imgsim` processes.
 
+/// Convert HSL value to RGB value.
 pub fn hsl_to_rgb(h: f32, s: f32, l: f32) -> (u8, u8, u8) {
     let l_min = if l > 1.0 - l { 1.0 - l } else { l };
     let a = s * l_min;

@@ -1,14 +1,14 @@
 [args]
 input_dir = ""                  # default = ""; this defaults to the current working directory. Change with caution as paths are OS-dependent. Better to specify in cli args.
 pixeldist_alg = "Euclidean"     # default = "euclidean"
-clustering_alg = "KMeans"       # default = "kmeans"
+clustering_alg = "Agglomerative"# default = "kmeans"
 similarity_alg = "ColourSim"    # default = "coloursim"
 
 [settings]
 debug = true                    # default = false
 verbose = false                 # default = false; doesn't matter because it will be overwritten by cli flag
-max_width = 600                 # default = 800; in pixels. anything wider than this will be shrunk.
-max_height = 600                # default = 800; in pixels. anything taller than this will be shrunk.
+max_width = 1000                # default = 1000; in pixels. anything wider than this will be shrunk.
+max_height = 1000               # default = 1000; in pixels. anything taller than this will be shrunk.
 output_dir = "./output/"        # default = "./output/"
 
 [agglomerative_options]

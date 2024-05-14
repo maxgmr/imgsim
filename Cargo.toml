@@ -1,6 +1,6 @@
 [package]
 name = "imgsim"
-version = "0.2.0"
+version = "0.3.0"
 edition = "2021"
 authors = ["Max Gilmour"]
 description = "A tool that finds similar images through various methods."
@@ -16,6 +16,7 @@ strum = "0.26"
 strum_macros = "0.26"
 rayon = "1.10.0"
 image = {version = "0.25.1", features = ["rayon"]}
+regex = "1.10.4"
 
 [dev-dependencies]
 pretty_assertions = "1.4.0"

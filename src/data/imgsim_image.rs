@@ -133,18 +133,17 @@ impl ImgsimImage {
                     }),
             );
         let elapsed_time = start_time.elapsed();
-        if imgsim_options.debug() {
+        if imgsim_options.debug() || imgsim_options.verbose() {
             println!(
                 "\"{}\": Built {} factors in {:.2?}.",
                 self.name,
                 self.pixeldist_factors.len(),
                 elapsed_time
             );
-        } else if imgsim_options.verbose() {
-            println!("\"{}\" factors done in {:.2?}.", self.name, elapsed_time);
         }
     }
 
+    /// Group the image into clusters, filling out the `cluster_lookup` and `pixel_clusters` properties.
     pub fn build_clusters(&mut self, imgsim_options: &ImgsimOptions) {
         let start_time = Instant::now();
         get_clusters(self, imgsim_options);
@@ -163,6 +162,7 @@ impl ImgsimImage {
         }
     }
 
+    /// Saves a visualisation of the image's clusters to the output directory specified in config.toml.
     pub fn save_cluster_image(&self, imgsim_options: &ImgsimOptions) {
         fn select_colour(number: usize) -> (u8, u8, u8) {
             let hue = number as f32 * 137.508;
@@ -236,12 +236,14 @@ impl ImgsimImage {
     }
 }
 
+/// A factor between two pixels denoting the colour distance between them.
 pub struct PixeldistFactor {
     a_coords: (u32, u32),
     b_coords: (u32, u32),
     distance: f32,
 }
 impl PixeldistFactor {
+    /// Creates a new [PixeldistFactor] out of the coordinates for two pixels and the colour distance between them.
     pub fn new(a_coords: (u32, u32), b_coords: (u32, u32), distance: f32) -> PixeldistFactor {
         PixeldistFactor {
             a_coords,
@@ -250,31 +252,18 @@ impl PixeldistFactor {
         }
     }
 
+    /// Returns the coordinates of the first pixel involved in this factor.
     pub fn a_coords(&self) -> &(u32, u32) {
         &self.a_coords
     }
 
+    /// Returns the coordinates of the second pixel involved in this factor.
     pub fn b_coords(&self) -> &(u32, u32) {
         &self.b_coords
     }
 
+    /// Returns the coordinates of the distance between the two pixels in this factor.
     pub fn distance(&self) -> f32 {
         self.distance
-    }
-}
-
-#[cfg(test)]
-mod tests {
-    use super::*;
-    use image::Rgba;
-    use pretty_assertions::assert_eq;
-
-    fn gen_test_image() -> RgbaImage {
-        let mut test_image = RgbaImage::new(2, 2);
-        *test_image.get_pixel_mut(0, 0) = Rgba([255, 0, 0, 255]); // Red
-        *test_image.get_pixel_mut(1, 0) = Rgba([0, 0, 255, 255]); // Blue
-        *test_image.get_pixel_mut(0, 1) = Rgba([255, 255, 0, 255]); // Yellow
-        *test_image.get_pixel_mut(1, 1) = Rgba([0, 0, 255, 0]); // Green
-        test_image
     }
 }
