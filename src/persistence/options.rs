@@ -23,12 +23,13 @@ struct Settings {
     verbose: bool,
     max_width: u32,
     max_height: u32,
-    output_dir: PathBuf,
 }
 
 #[derive(Debug, Deserialize)]
 struct Args {
     input_dir: PathBuf,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    output_dir: Option<PathBuf>,
     pixeldist_alg: PixeldistAlg,
     clustering_alg: ClusteringAlg,
     similarity_alg: SimilarityAlg,
@@ -61,6 +62,7 @@ impl ImgsimOptions {
         let mut imgsim_options: ImgsimOptions = match toml::from_str(&config_toml_str) {
             Ok(toml) => toml,
             Err(toml_error) => {
+                dbg!(&toml_error);
                 return Err(PersistenceError::DeserializeError(String::from(
                     toml_error.message(),
                 )));
@@ -85,26 +87,41 @@ impl ImgsimOptions {
             imgsim_options.args.input_dir = working_directory
         }
 
-        // Get input_dir arg from cli
-        let input_dir_cli_arg: Option<&PathBuf> = arg_matches.get_one::<PathBuf>("input_dir");
-
-        // If input_dir cli arg given and exists, replace input_dir from config.toml
+        // If cli arg given and exists, replace input_dir from config.toml
         // Return ReadFileError if input directory doesn't exist or isn't a directory
-        if let Some(input_dir_cli_arg_unwrapped) = input_dir_cli_arg {
-            if !input_dir_cli_arg_unwrapped.exists() {
-                return Err(PersistenceError::ReadFileError(Some(PathBuf::from(
-                    input_dir_cli_arg_unwrapped,
-                ))));
-            }
+        fn verify_cli_arg_path(
+            cli_arg: Option<&PathBuf>,
+        ) -> Result<Option<PathBuf>, PersistenceError> {
+            if let Some(cli_arg_unwrapped) = cli_arg {
+                if !cli_arg_unwrapped.exists() {
+                    return Err(PersistenceError::ReadFileError(Some(PathBuf::from(
+                        cli_arg_unwrapped,
+                    ))));
+                }
 
-            if !input_dir_cli_arg_unwrapped.is_dir() {
-                return Err(PersistenceError::NotDirectoryError(Some(PathBuf::from(
-                    input_dir_cli_arg_unwrapped,
-                ))));
-            }
+                if !cli_arg_unwrapped.is_dir() {
+                    return Err(PersistenceError::NotDirectoryError(Some(PathBuf::from(
+                        cli_arg_unwrapped,
+                    ))));
+                }
+                return Ok(Some(PathBuf::from(cli_arg_unwrapped)));
+            };
+            return Ok(None);
+        }
 
-            imgsim_options.args.input_dir = PathBuf::from(input_dir_cli_arg_unwrapped);
-        };
+        // Get input_dir arg from cli and update imgsim_options if provided
+        match verify_cli_arg_path(arg_matches.get_one::<PathBuf>("input_dir")) {
+            Ok(Some(path)) => imgsim_options.args.input_dir = path,
+            Err(error) => return Err(error),
+            _ => (),
+        }
+
+        // Get output_dir arg from cli and update imgsim_options if provided
+        match verify_cli_arg_path(arg_matches.get_one::<PathBuf>("output_dir")) {
+            Ok(Some(path)) => imgsim_options.args.output_dir = Some(path),
+            Err(error) => return Err(error),
+            _ => (),
+        }
 
         // Update any config values with corresponding cli args
         fn get_cli_arg<T: IntoEnumIterator + MatchEnumAsStr>(
@@ -192,8 +209,8 @@ impl ImgsimOptions {
     }
 
     /// Return the output directory path.
-    pub fn output_dir(&self) -> &PathBuf {
-        &self.settings.output_dir
+    pub fn output_dir(&self) -> &Option<PathBuf> {
+        &self.args.output_dir
     }
 
     /// Return the tolerance of the agglomerative clustering algorithm.

@@ -1,0 +1,15 @@
+[tasks.build]
+command = "cargo"
+args = ["build", "--release"]
+
+[tasks.clean]
+command = "cargo"
+args = ["clean", "--release"]
+
+[tasks.createconfig]
+cwd = "~"
+command = "mkdir"
+args = ["-p", "./.config/imgsim/config"]
+
+[tasks.install]
+dependencies = ["clean", "build", "createconfig"]

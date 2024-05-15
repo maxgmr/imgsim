@@ -165,29 +165,31 @@ impl ImgsimImage {
 
     /// Saves a visualisation of the image's clusters to the output directory specified in config.toml.
     pub fn save_cluster_image(&self, imgsim_options: &ImgsimOptions) {
-        fn select_colour(number: usize) -> (u8, u8, u8) {
-            let hue = number as f32 * 137.508;
-            let sat = (((number as f32 * 137.508) % 360.0) / 360.0) * 50.0 + 50.0;
-            let lit = (((number as f32 * 137.508) % 360.0) / 360.0) * 20.0 + 40.0;
-            hsl_to_rgb(hue, sat, lit)
+        if let Some(output_dir) = imgsim_options.output_dir() {
+            fn select_colour(number: usize) -> (u8, u8, u8) {
+                let hue = number as f32 * 137.508;
+                let sat = (((number as f32 * 137.508) % 360.0) / 360.0) * 50.0 + 50.0;
+                let lit = (((number as f32 * 137.508) % 360.0) / 360.0) * 20.0 + 40.0;
+                hsl_to_rgb(hue, sat, lit)
+            }
+
+            let mut cluster_diagram =
+                image::ImageBuffer::new(self.rgba_image.width(), self.rgba_image.height());
+            cluster_diagram
+                .enumerate_pixels_mut()
+                .for_each(|(x, y, pixel)| {
+                    let cluster = self.cluster_lookup().get(&(x, y)).unwrap();
+                    let (r, g, b) = select_colour(*cluster);
+                    *pixel = image::Rgb([r, g, b]);
+                });
+            let mut save_path = PathBuf::from(output_dir);
+
+            let ext_regex = Regex::new(r"\.(?:bmp|dib|dds|gif|hdr|ico|jpg|jpeg|tiff)$").unwrap();
+            let filename = ext_regex.replace(self.name(), ".png");
+
+            save_path.push(format!("clusters-{}", filename));
+            cluster_diagram.save(save_path).unwrap();
         }
-
-        let mut cluster_diagram =
-            image::ImageBuffer::new(self.rgba_image.width(), self.rgba_image.height());
-        cluster_diagram
-            .enumerate_pixels_mut()
-            .for_each(|(x, y, pixel)| {
-                let cluster = self.cluster_lookup().get(&(x, y)).unwrap();
-                let (r, g, b) = select_colour(*cluster);
-                *pixel = image::Rgb([r, g, b]);
-            });
-        let mut save_path = PathBuf::from(imgsim_options.output_dir());
-
-        let ext_regex = Regex::new(r"\.(?:bmp|dib|dds|gif|hdr|ico|jpg|jpeg|tiff)$").unwrap();
-        let filename = ext_regex.replace(self.name(), ".png");
-
-        save_path.push(format!("clusters-{}", filename));
-        cluster_diagram.save(save_path).unwrap();
     }
 
     /// Returns the name of the image.

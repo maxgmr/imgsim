@@ -38,6 +38,13 @@ fn main() {
                 .action(clap::ArgAction::SetTrue)
                 .help("Print more messages to terminal")
         )
+        .arg(
+            Arg::new("output_dir")
+                .short('o')
+                .long("output")
+                .value_parser(clap::value_parser!(PathBuf))
+                .help("The directory to which debug images are saved. Leave this blank to not save any debug images.")
+        )
         .get_matches();
 
     let imgsim_options = match ImgsimOptions::build(CONFIG_PATH_STR, match_result) {
