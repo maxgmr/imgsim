@@ -8,6 +8,11 @@ use strum::IntoEnumIterator;
 use crate::{ClusteringAlg, MatchEnumAsStr, PersistenceError, PixeldistAlg, SimilarityAlg};
 
 #[derive(Debug, Deserialize)]
+struct ColoursimOptions {
+    cluster_cutoff: f32,
+}
+
+#[derive(Debug, Deserialize)]
 struct AgglomerativeOptions {
     tolerance: f32,
 }
@@ -35,6 +40,7 @@ pub struct ImgsimOptions {
     args: Args,
     settings: Settings,
     agglomerative_options: AgglomerativeOptions,
+    coloursim_options: ColoursimOptions,
 }
 impl ImgsimOptions {
     /// Create a new ImgsimOptions. Return [PersistenceError] on failure to read file or deserialise.
@@ -193,5 +199,10 @@ impl ImgsimOptions {
     /// Return the tolerance of the agglomerative clustering algorithm.
     pub fn agglo_tolerance(&self) -> f32 {
         self.agglomerative_options.tolerance
+    }
+
+    /// Return the cluster cutoff point for the coloursim similarity algorithm.
+    pub fn cluster_cutoff(&self) -> f32 {
+        self.coloursim_options.cluster_cutoff
     }
 }

@@ -13,3 +13,6 @@ output_dir = "./output/"        # default = "./output/"
 
 [agglomerative_options]
 tolerance = 0.6                 # default = 0.5; distance between pixels must be above this percentile to remain as separate groups
+
+[coloursim_options]
+cluster_cutoff = 0.1            # default = 0.1; any clusters which make up less than (cluster_cutoff * 100)% of the image will not be considered.
