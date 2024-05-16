@@ -47,3 +47,7 @@ Merges neighbouring clusters together iff their pixels have a distance less than
 ### Coloursim
 
 Calculates image similarity based on the average colours of the most dominant clusters of each image.
+
+### Clustersize
+
+Calculates image similarity based on the relative size and relative location of each image's most dominant clusters.
