@@ -80,6 +80,6 @@ fn main() {
     });
 
     let image_similarity_matrix = get_similarities(&images, &imgsim_options);
-    println!("{:#?}", image_similarity_matrix);
+    image_similarity_matrix.print();
     process::exit(0);
 }

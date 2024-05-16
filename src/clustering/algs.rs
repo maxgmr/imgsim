@@ -14,10 +14,10 @@ use crate::{ImgsimImage, ImgsimOptions, MatchEnumAsStr};
 /// Denotes the type of pixel clustering algorithm being utilised.
 pub enum ClusteringAlg {
     #[serde(alias = "kmeans")]
-    /// K-means clustering: https://en.wikipedia.org/wiki/K-means_clustering
+    /// K-means clustering: <https://en.wikipedia.org/wiki/K-means_clustering>
     KMeans,
     #[serde(alias = "agglo", alias = "agglomerative", alias = "agg")]
-    /// Agglomerative clustering
+    /// Agglomerative clustering: More info at <https://github.com/maxgmr/imgsim>
     Agglomerative,
 }
 impl MatchEnumAsStr for ClusteringAlg {}

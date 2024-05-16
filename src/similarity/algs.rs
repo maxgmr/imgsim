@@ -2,7 +2,7 @@
 
 use rayon::prelude::*;
 use serde::Deserialize;
-use std::collections::HashMap;
+use std::{cmp, collections::HashMap};
 use strum_macros::EnumIter;
 
 use crate::{ImageSimilarityMatrixNoMatchError, ImgsimImage, ImgsimOptions, MatchEnumAsStr};
@@ -81,6 +81,33 @@ impl ImageSimilarityMatrix {
         }
     }
 
+    /// Prints the image similarities to the terminal in a sorted, readable manner.
+    pub fn print(&self) {
+        let mut list: Vec<(&(String, String), &Option<f32>)> = self.matrix.iter().collect();
+        list.sort_by(|((_, _), sim_a), ((_, _), sim_b)| match (sim_a, sim_b) {
+            (Some(a), Some(b)) => b.partial_cmp(a).unwrap(),
+            (Some(_), None) => cmp::Ordering::Less,
+            (None, Some(_)) => cmp::Ordering::Greater,
+            _ => cmp::Ordering::Equal,
+        });
+
+        println!("");
+        println!("======Most-Similar Images======");
+        list.iter().for_each(|((image_a, image_b), similarity)| {
+            println!(
+                "[\"{}\" & \"{}\"]: {}",
+                image_a,
+                image_b,
+                if let Some(s) = similarity {
+                    s.to_string()
+                } else {
+                    String::from("N/A")
+                }
+            )
+        });
+        println!("=====Least-Similar Images======");
+    }
+
     fn colour_sim(&mut self, images: &Vec<ImgsimImage>, imgsim_options: &ImgsimOptions) {
         #[derive(Debug)]
         struct ClusterInfo {
@@ -132,7 +159,7 @@ impl ImageSimilarityMatrix {
                         imgsim_options.coloursim_cluster_cutoff() * 100.0
                     );
                 }
-                clusters_info.sort_by(|a, b| b.size.cmp(&a.size));
+                clusters_info.sort_unstable_by(|a, b| b.size.cmp(&a.size));
                 (image.name(), clusters_info)
             })
             .collect();
@@ -258,7 +285,7 @@ impl ImageSimilarityMatrix {
                         imgsim_options.clustersize_cluster_cutoff() * 100.0
                     );
                 }
-                clusters_info.sort_by(|a, b| b.size.cmp(&a.size));
+                clusters_info.sort_unstable_by(|a, b| b.size.cmp(&a.size));
                 (image.name(), clusters_info)
             })
             .collect();
