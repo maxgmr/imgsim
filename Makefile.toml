@@ -7,8 +7,23 @@ command = "cargo"
 args = ["clean", "--release"]
 
 [tasks.createconfig]
-command = "echo"
-args = ["test"]
+script = '''
+mkdir -p ~/.config/imgsim/
+cp ./config/config.toml ~/.config/imgsim/config.toml
+cp ./config/config.toml ~/.config/imgsim/config.def.toml
+'''
+
+[tasks.addtousr]
+script = '''
+mkdir -p /usr/local/bin/ 
+cp ./target/release/imgsim /usr/local/bin/imgsim
+'''
 
 [tasks.install]
-dependencies = ["clean", "build", "createconfig"]
+dependencies = ["clean", "build", "createconfig", "addtousr"]
+
+[tasks.uninstall]
+script = '''
+rm -rf ~/.config/imgsim/
+rm -f /usr/local/bin/imgsim
+'''
