@@ -10,7 +10,8 @@ args = ["clean", "--release"]
 script = '''
 sudo mkdir -p ~/.config/imgsim/
 sudo cp ./config/config.toml ~/.config/imgsim/config.toml
-sudo cp ./config/config.toml ~/.config/imgsim/config.def.toml
+sudo chmod 666 ~/.config/imgsim/config.toml
+sudo cp ./config/config.toml ~/.config/imgsim/default-config.toml
 '''
 
 [tasks.addtousr]
