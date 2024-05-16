@@ -10,8 +10,13 @@ use crate::{ClusteringAlg, MatchEnumAsStr, PersistenceError, PixeldistAlg, Simil
 const CONFIG_PATH_STR: &str = ".config/imgsim/config.toml";
 
 #[derive(Debug, Deserialize)]
+struct ClustersizeOptions {
+    clustersize_cluster_cutoff: f32,
+}
+
+#[derive(Debug, Deserialize)]
 struct ColoursimOptions {
-    cluster_cutoff: f32,
+    coloursim_cluster_cutoff: f32,
 }
 
 #[derive(Debug, Deserialize)]
@@ -44,6 +49,7 @@ pub struct ImgsimOptions {
     settings: Settings,
     agglomerative_options: AgglomerativeOptions,
     coloursim_options: ColoursimOptions,
+    clustersize_options: ClustersizeOptions,
 }
 impl ImgsimOptions {
     /// Create a new ImgsimOptions. Return [PersistenceError] on failure to read file or deserialise.
@@ -164,6 +170,7 @@ impl ImgsimOptions {
             println!("imgsim_options updated by cli args:");
             dbg!(&imgsim_options);
         }
+        // TODO: Print selected algorithm options, show warning on unparseable algorithm options
         return Ok(imgsim_options);
     }
 
@@ -218,7 +225,12 @@ impl ImgsimOptions {
     }
 
     /// Return the cluster cutoff point for the coloursim similarity algorithm.
-    pub fn cluster_cutoff(&self) -> f32 {
-        self.coloursim_options.cluster_cutoff
+    pub fn coloursim_cluster_cutoff(&self) -> f32 {
+        self.coloursim_options.coloursim_cluster_cutoff
+    }
+
+    /// Return the cluster cutoff point for the clustersize similarity algorithm.
+    pub fn clustersize_cluster_cutoff(&self) -> f32 {
+        self.clustersize_options.clustersize_cluster_cutoff
     }
 }
