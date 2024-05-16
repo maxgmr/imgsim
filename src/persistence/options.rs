@@ -132,6 +132,7 @@ impl ImgsimOptions {
         fn get_cli_arg<T: IntoEnumIterator + MatchEnumAsStr>(
             arg_matches: &ArgMatches,
             id: &str,
+            default: &T,
         ) -> Option<T> {
             let cli_arg_val = arg_matches.get_one::<String>(id);
             if let Some(val) = cli_arg_val {
@@ -141,6 +142,7 @@ impl ImgsimOptions {
                         return Some(option);
                     }
                 }
+                eprintln!("Warning: Input \"{}\" does not match a known algorithm. Utilising default ({:?})", val, default);
                 None
             } else {
                 None
@@ -148,17 +150,29 @@ impl ImgsimOptions {
         }
 
         // update pixeldist_alg if given in cli
-        if let Some(arg) = get_cli_arg::<PixeldistAlg>(&arg_matches, "pixeldist_alg") {
+        if let Some(arg) = get_cli_arg::<PixeldistAlg>(
+            &arg_matches,
+            "pixeldist_alg",
+            &imgsim_options.args.pixeldist_alg,
+        ) {
             imgsim_options.args.pixeldist_alg = arg;
         }
 
         // update clustering_alg if given in cli
-        if let Some(arg) = get_cli_arg::<ClusteringAlg>(&arg_matches, "clustering_alg") {
+        if let Some(arg) = get_cli_arg::<ClusteringAlg>(
+            &arg_matches,
+            "clustering_alg",
+            &imgsim_options.args.clustering_alg,
+        ) {
             imgsim_options.args.clustering_alg = arg;
         }
 
         // update similarity_alg if given in cli
-        if let Some(arg) = get_cli_arg::<SimilarityAlg>(&arg_matches, "similarity_alg") {
+        if let Some(arg) = get_cli_arg::<SimilarityAlg>(
+            &arg_matches,
+            "similarity_alg",
+            &imgsim_options.args.similarity_alg,
+        ) {
             imgsim_options.args.similarity_alg = arg;
         }
 
@@ -170,7 +184,14 @@ impl ImgsimOptions {
             println!("imgsim_options updated by cli args:");
             dbg!(&imgsim_options);
         }
-        // TODO: Print selected algorithm options, show warning on unparseable algorithm options
+        println!("=======Selected Algorithms=======");
+        println!(
+            "Pixel Distance:   {:?}\nPixel Clustering: {:?}\nImage Similarity: {:?}",
+            imgsim_options.args.pixeldist_alg,
+            imgsim_options.args.clustering_alg,
+            imgsim_options.args.similarity_alg
+        );
+        println!("=================================");
         return Ok(imgsim_options);
     }
 
