@@ -18,13 +18,13 @@ Currently only works on Linux machines.
 
 Not all algorithms are usable with all other algorithms. Kindly view the algorithm options in the following sections to check for any such restrictions.
 
-- **-p, --pixeldist <pixeldist algorithm>**: Choose the algorithm for pixel distance
-- **-c, --clustering <clustering algorithm>**: Choose the algorithm for pixel clustering
-- **-s, --similarity <similarity algorithm>**: Choose the algorithm for image similarity
-- **-v, --verbose**: Print more messages to the terminal.
-- **-o, --output <output_dir>**: The directory to which debug images are saved. Leave this blank to not save any debug images.
-- **-h, --help**: Print help
-- **-V, --version**: Print version
+- `-p, --pixeldist <pixeldist_algorithm>`: Choose the algorithm for pixel distance
+- `-c, --clustering <clustering_algorithm>`: Choose the algorithm for pixel clustering
+- `-s, --similarity <similarity_algorithm>`: Choose the algorithm for image similarity
+- `-v, --verbose`: Print more messages to the terminal.
+- `-o, --output <output_dir>`: The directory to which debug images are saved. Leave this blank to not save any debug images.
+- `-h, --help`: Print help
+- `-V, --version`: Print version
 
 ## Pixeldist Algorithm Options
 
