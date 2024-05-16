@@ -27,6 +27,7 @@ struct AgglomerativeOptions {
 #[derive(Debug, Deserialize)]
 struct Settings {
     debug: bool,
+    #[serde(default)]
     verbose: bool,
     max_width: u32,
     max_height: u32,
