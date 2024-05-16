@@ -17,6 +17,7 @@ strum_macros = "0.26"
 rayon = "1.10.0"
 image = {version = "0.25.1", features = ["rayon"]}
 regex = "1.10.4"
+home = "0.5.9"
 
 [dev-dependencies]
 pretty_assertions = "1.4.0"

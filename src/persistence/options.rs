@@ -7,6 +7,8 @@ use strum::IntoEnumIterator;
 
 use crate::{ClusteringAlg, MatchEnumAsStr, PersistenceError, PixeldistAlg, SimilarityAlg};
 
+const CONFIG_PATH_STR: &str = ".config/imgsim/config";
+
 #[derive(Debug, Deserialize)]
 struct ColoursimOptions {
     cluster_cutoff: f32,
@@ -47,12 +49,11 @@ impl ImgsimOptions {
     /// Create a new ImgsimOptions. Return [PersistenceError] on failure to read file or deserialise.
     ///
     /// Argument `config_path_str` must point to a valid `.toml` file.
-    pub fn build(
-        config_path_str: &str,
-        arg_matches: ArgMatches,
-    ) -> Result<ImgsimOptions, PersistenceError> {
+    pub fn build(arg_matches: ArgMatches) -> Result<ImgsimOptions, PersistenceError> {
         // Load config
-        let config_path = PathBuf::from(config_path_str);
+        let mut config_path = home::home_dir().unwrap();
+        config_path.push(CONFIG_PATH_STR);
+        dbg!(&config_path);
         let config_toml_str = if let Ok(string) = fs::read_to_string(&config_path) {
             string
         } else {
@@ -62,7 +63,6 @@ impl ImgsimOptions {
         let mut imgsim_options: ImgsimOptions = match toml::from_str(&config_toml_str) {
             Ok(toml) => toml,
             Err(toml_error) => {
-                dbg!(&toml_error);
                 return Err(PersistenceError::DeserializeError(String::from(
                     toml_error.message(),
                 )));
@@ -81,6 +81,7 @@ impl ImgsimOptions {
                 return Err(PersistenceError::ReadFileError(None));
             }
         };
+        dbg!(&working_directory);
 
         // Default to working dir
         if imgsim_options.args.input_dir.to_str().unwrap().len() == 0 {
