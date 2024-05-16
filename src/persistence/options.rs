@@ -7,7 +7,7 @@ use strum::IntoEnumIterator;
 
 use crate::{ClusteringAlg, MatchEnumAsStr, PersistenceError, PixeldistAlg, SimilarityAlg};
 
-const CONFIG_PATH_STR: &str = ".config/imgsim/config";
+const CONFIG_PATH_STR: &str = ".config/imgsim/config.toml";
 
 #[derive(Debug, Deserialize)]
 struct ColoursimOptions {
@@ -53,7 +53,6 @@ impl ImgsimOptions {
         // Load config
         let mut config_path = home::home_dir().unwrap();
         config_path.push(CONFIG_PATH_STR);
-        dbg!(&config_path);
         let config_toml_str = if let Ok(string) = fs::read_to_string(&config_path) {
             string
         } else {
@@ -81,7 +80,6 @@ impl ImgsimOptions {
                 return Err(PersistenceError::ReadFileError(None));
             }
         };
-        dbg!(&working_directory);
 
         // Default to working dir
         if imgsim_options.args.input_dir.to_str().unwrap().len() == 0 {
