@@ -328,18 +328,85 @@ fn avg_colour_sim(r_a: u8, g_a: u8, b_a: u8, a_a: u8, r_b: u8, g_b: u8, b_b: u8,
 }
 
 fn proportional_similarity_coords((x_a, y_a): &(f32, f32), (x_b, y_b): &(f32, f32)) -> f32 {
-    ((2.0_f32).sqrt() / ((x_a - x_b).powf(2.0) + (y_a - y_b).powf(2.0)).sqrt()) - 0.5
+    let abs_delta_x = (x_a - x_b).abs();
+    let abs_delta_y = (y_a - y_b).abs();
+    -2.0 * (((abs_delta_x + abs_delta_y).sqrt() / (2.0_f32).sqrt()) - 0.5)
 }
 
 fn proportional_similarity(val_a: f32, val_b: f32) -> f32 {
     // val_a & val_b all already range from 0 to 1; no need to normalise.
-    ((val_a - val_b).powf(2.0) - 0.5) * -2.0
+    -2.0 * ((val_a - val_b).abs().sqrt() - 0.5)
 }
 
 #[cfg(test)]
 mod tests {
     use super::*;
     use pretty_assertions::assert_eq;
+
+    #[test]
+    fn prop_sim_min() {
+        assert_eq!(proportional_similarity(1.0, 0.0), -1.0);
+    }
+
+    #[test]
+    fn prop_sim_max_0() {
+        assert_eq!(proportional_similarity(0.0, 0.0), 1.0)
+    }
+
+    #[test]
+    fn prop_sim_max_1() {
+        assert_eq!(proportional_similarity(1.0, 1.0), 1.0)
+    }
+
+    #[test]
+    fn prop_sim_close() {
+        let ans = ((-2.0 * ((0.01_f32).sqrt() - 0.5)) * 10000.0).round() / 10000.0;
+        let result = (proportional_similarity(0.42, 0.43) * 10000.0).round() / 10000.0;
+        assert_eq!(result, ans)
+    }
+
+    #[test]
+    fn prop_sim_far() {
+        let ans = -2.0 * ((0.28_f32).sqrt() - 0.5);
+        assert_eq!(proportional_similarity(0.42, 0.7), ans)
+    }
+
+    #[test]
+    fn psc_min() {
+        assert_eq!(
+            proportional_similarity_coords(&(1.0, 1.0), &(0.0, 0.0)),
+            -1.0
+        );
+    }
+
+    #[test]
+    fn psc_max() {
+        assert_eq!(
+            proportional_similarity_coords(&(0.5, 0.7), &(0.5, 0.7)),
+            1.0
+        )
+    }
+
+    #[test]
+    fn psc_close() {
+        let ans =
+            ((-2.0 * (((0.04_f32).sqrt() / (2.0_f32).sqrt()) - 0.5)) * 10000.0).round() / 10000.0;
+        let result = (proportional_similarity_coords(&(0.42, 0.42), &(0.43, 0.39)) * 10000.0)
+            .round()
+            / 10000.0;
+        assert_eq!(result, ans)
+    }
+
+    #[test]
+    fn psc_far() {
+        let ans =
+            ((-2.0 * (((0.4_f32).sqrt() / (2.0_f32).sqrt()) - 0.5)) * 10000.0).round() / 10000.0;
+        assert_eq!(
+            (proportional_similarity_coords(&(0.42, 0.7), &(0.23, 0.91)) * 10000.0).round()
+                / 10000.0,
+            ans
+        )
+    }
 
     #[test]
     fn acs_same() {
