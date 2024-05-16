@@ -148,6 +148,7 @@ impl ImageSimilarityMatrix {
                     .1;
                 if clusters_info_a.len() > 0 && clusters_info_b.len() > 0 {
                     // Calculate Similarity
+                    // TODO: Try accuracy of taking average rather than summing them up
                     let mut new_similarity = 0.0;
                     let mut i = 0;
                     while i < clusters_info_a.len() && i < clusters_info_b.len() {

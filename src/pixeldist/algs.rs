@@ -9,6 +9,7 @@ use crate::{ImgsimOptions, MatchEnumAsStr};
 #[derive(Debug, Deserialize, EnumIter)]
 /// Denotes the type of pixel distance algorithm being utilised.
 pub enum PixeldistAlg {
+    // TODO distance more heavily weighted on hue distance and less on brightness distance?
     #[serde(alias = "euclidean")]
     /// Standard Euclidean distance between two pixels' sRGB values.
     Euclidean,
