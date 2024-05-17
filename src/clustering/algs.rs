@@ -188,6 +188,5 @@ pub fn agglomerative(imgsim_image: &mut ImgsimImage, imgsim_options: &ImgsimOpti
     *imgsim_image.pixel_clusters_mut() = new_pixel_clusters;
 }
 
-pub fn k_means(_imgsim_image: &mut ImgsimImage, _imgsim_options: &ImgsimOptions) {
-    // TODO
+pub fn k_means(imgsim_image: &mut ImgsimImage, imgsim_options: &ImgsimOptions) {
 }

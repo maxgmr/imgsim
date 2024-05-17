@@ -91,43 +91,48 @@ impl ImgsimImage {
                     .par_enumerate_pixels()
                     .flat_map(|(x, y, pixel)| {
                         let mut temp_vec: Vec<PixeldistFactor> = Vec::new();
-                        // Right neighbour
-                        if let Some(right_neighbour) = self.rgba_image.get_pixel_checked(x + 1, y) {
-                            temp_vec.push(PixeldistFactor::new(
-                                (x, y),
-                                (x + 1, y),
-                                get_pixeldist(&pixel, &right_neighbour, &imgsim_options),
-                            ))
-                        }
-                        // Bottom-right neighbour
-                        if let Some(b_right_neighbour) =
-                            self.rgba_image.get_pixel_checked(x + 1, y + 1)
-                        {
-                            temp_vec.push(PixeldistFactor::new(
-                                (x, y),
-                                (x + 1, y + 1),
-                                get_pixeldist(&pixel, &b_right_neighbour, &imgsim_options),
-                            ))
-                        }
-                        // Bottom neighbour
-                        if let Some(bottom_neighbour) = self.rgba_image.get_pixel_checked(x, y + 1)
-                        {
-                            temp_vec.push(PixeldistFactor::new(
-                                (x, y),
-                                (x, y + 1),
-                                get_pixeldist(&pixel, &bottom_neighbour, &imgsim_options),
-                            ))
-                        }
-                        // Bottom-left neighbour
-                        if x > 0 {
-                            if let Some(b_left_neighbour) =
-                                self.rgba_image.get_pixel_checked(x - 1, y + 1)
+                        if !imgsim_options.skip_pixelsim() {
+                            // Right neighbour
+                            if let Some(right_neighbour) =
+                                self.rgba_image.get_pixel_checked(x + 1, y)
                             {
                                 temp_vec.push(PixeldistFactor::new(
                                     (x, y),
-                                    (x - 1, y + 1),
-                                    get_pixeldist(&pixel, &b_left_neighbour, &imgsim_options),
+                                    (x + 1, y),
+                                    get_pixeldist(&pixel, &right_neighbour, &imgsim_options),
                                 ))
+                            }
+                            // Bottom-right neighbour
+                            if let Some(b_right_neighbour) =
+                                self.rgba_image.get_pixel_checked(x + 1, y + 1)
+                            {
+                                temp_vec.push(PixeldistFactor::new(
+                                    (x, y),
+                                    (x + 1, y + 1),
+                                    get_pixeldist(&pixel, &b_right_neighbour, &imgsim_options),
+                                ))
+                            }
+                            // Bottom neighbour
+                            if let Some(bottom_neighbour) =
+                                self.rgba_image.get_pixel_checked(x, y + 1)
+                            {
+                                temp_vec.push(PixeldistFactor::new(
+                                    (x, y),
+                                    (x, y + 1),
+                                    get_pixeldist(&pixel, &bottom_neighbour, &imgsim_options),
+                                ))
+                            }
+                            // Bottom-left neighbour
+                            if x > 0 {
+                                if let Some(b_left_neighbour) =
+                                    self.rgba_image.get_pixel_checked(x - 1, y + 1)
+                                {
+                                    temp_vec.push(PixeldistFactor::new(
+                                        (x, y),
+                                        (x - 1, y + 1),
+                                        get_pixeldist(&pixel, &b_left_neighbour, &imgsim_options),
+                                    ))
+                                }
                             }
                         }
                         temp_vec

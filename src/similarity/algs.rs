@@ -13,7 +13,7 @@ pub enum SimilarityAlg {
     #[serde(alias = "coloursim", alias = "colorsim")]
     /// Matches similar images based on the average colour of their most distinct clusters.
     ColourSim,
-    #[serde(alias = "clustersize")]
+    #[serde(alias = "clustersize", alias = "Clustersize")]
     /// Matches similar images based on the relative shape and size of their most distinct clusters.
     ClusterSize,
 }

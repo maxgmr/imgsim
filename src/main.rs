@@ -37,6 +37,13 @@ fn main() {
                 .help("Print more messages to terminal")
         )
         .arg(
+            Arg::new("force")
+                .short('f')
+                .long("force")
+                .action(clap::ArgAction::SetTrue)
+                .help("Allow imgsim to run with discouraged settings")
+        )
+        .arg(
             Arg::new("output_dir")
                 .short('o')
                 .long("output")
