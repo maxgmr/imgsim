@@ -81,7 +81,7 @@ impl ImageSimilarityMatrix {
         }
     }
 
-    /// Prints the image similarities to the terminal in a sorted, readable manner.
+    /// Print the image similarities to the terminal in a sorted, readable manner.
     pub fn print(&self) {
         let mut list: Vec<(&(String, String), &Option<f32>)> = self.matrix.iter().collect();
         list.sort_by(|((_, _), sim_a), ((_, _), sim_b)| match (sim_a, sim_b) {
@@ -184,7 +184,6 @@ impl ImageSimilarityMatrix {
                     .1;
                 if clusters_info_a.len() > 0 && clusters_info_b.len() > 0 {
                     // Calculate Similarity
-                    // TODO: Try accuracy of taking average rather than summing them up
                     let mut new_similarity = 0.0;
                     let mut i = 0;
                     while i < clusters_info_a.len() && i < clusters_info_b.len() {
@@ -202,7 +201,12 @@ impl ImageSimilarityMatrix {
                     }
                     new_matrix.insert(
                         (String::from(image_a_name), String::from(image_b_name)),
-                        Some(new_similarity),
+                        Some(new_similarity / i as f32),
+                    );
+                } else {
+                    new_matrix.insert(
+                        (String::from(image_a_name), String::from(image_b_name)),
+                        None,
                     );
                 }
             });
@@ -333,6 +337,11 @@ impl ImageSimilarityMatrix {
                     new_matrix.insert(
                         (String::from(image_a_name), String::from(image_b_name)),
                         Some(new_similarity / count as f32),
+                    );
+                } else {
+                    new_matrix.insert(
+                        (String::from(image_a_name), String::from(image_b_name)),
+                        None,
                     );
                 }
             });
