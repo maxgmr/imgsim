@@ -20,6 +20,12 @@ struct ColoursimOptions {
 }
 
 #[derive(Debug, Deserialize)]
+struct KmeansOptions {
+    max_k: usize,
+    silhouette_threshold: f32,
+}
+
+#[derive(Debug, Deserialize)]
 struct AgglomerativeOptions {
     tolerance: f32,
 }
@@ -53,6 +59,7 @@ pub struct ImgsimOptions {
     args: Args,
     settings: Settings,
     agglomerative_options: AgglomerativeOptions,
+    kmeans_options: KmeansOptions,
     coloursim_options: ColoursimOptions,
     clustersize_options: ClustersizeOptions,
 }
@@ -285,6 +292,16 @@ impl ImgsimOptions {
     /// Return the tolerance of the agglomerative clustering algorithm.
     pub fn agglo_tolerance(&self) -> f32 {
         self.agglomerative_options.tolerance
+    }
+
+    ///  Return the max number of clusters to attempt for k-means clustering.
+    pub fn max_k(&self) -> usize {
+        self.kmeans_options.max_k
+    }
+
+    /// Return the average silhouette value past which k-means clustering returns early.
+    pub fn silhouette_threshold(&self) -> f32 {
+        self.kmeans_options.silhouette_threshold
     }
 
     /// Return the cluster cutoff point for the coloursim similarity algorithm.
