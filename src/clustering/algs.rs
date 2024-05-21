@@ -1,7 +1,7 @@
 #![warn(missing_docs)]
 
-use image::GenericImageView;
 use rand::Rng;
+use rayon::prelude::*;
 use serde::Deserialize;
 use std::{
     collections::BTreeMap,
@@ -191,12 +191,19 @@ pub fn agglomerative(imgsim_image: &mut ImgsimImage, imgsim_options: &ImgsimOpti
 }
 
 pub fn k_means(imgsim_image: &mut ImgsimImage, imgsim_options: &ImgsimOptions) {
+    // TODO: Turn into structs instead of tuples (centroid, cluster_lookup, pixel_clusters)
+
     // Optimal k: Silhouette (https://en.wikipedia.org/wiki/Silhouette_(clustering))
     // Seeding: k-means++ (https://en.wikipedia.org/wiki/K-means%2B%2B)
-    // 3d tree: https://dl.acm.org/doi/pdf/10.1145/361002.361007
+    // Naïve k-means
 
     // Timers for debugging
     let mut seeding_time_cuml = Duration::new(0, 0);
+    let mut k_means_cuml = Duration::new(0, 0);
+    let mut copy_old_cuml = Duration::new(0, 0);
+    let mut find_closest_cuml = Duration::new(0, 0);
+    let mut move_pixels_cuml = Duration::new(0, 0);
+    let mut new_centroids_cuml = Duration::new(0, 0);
 
     // Lookup table to easily find a pixel's cluster
     let mut new_cluster_lookup: BTreeMap<(u32, u32), usize> = BTreeMap::new();
@@ -207,6 +214,10 @@ pub fn k_means(imgsim_image: &mut ImgsimImage, imgsim_options: &ImgsimOptions) {
 
     // Iterate through possible k numbers until a reasonable silhouette is achieved
     for k in 2..(imgsim_options.max_k() + 1) {
+        // Reset new_cluster_lookup and new_pixel_clusters from last iteration
+        new_cluster_lookup.clear();
+        new_pixel_clusters.clear();
+
         // STEP I: k-means++ seeding
         let seeding_start = Instant::now();
         let mut centroids: Vec<((u32, u32), [u8; 3])> = Vec::with_capacity(k);
@@ -215,11 +226,13 @@ pub fn k_means(imgsim_image: &mut ImgsimImage, imgsim_options: &ImgsimOptions) {
         let rand_y = rand::thread_rng().gen_range(0..imgsim_image.rgba_image().height());
         let image::Rgba([r_i, g_i, b_i, _]) = *imgsim_image.rgba_image().get_pixel(rand_x, rand_y);
         centroids.push(((rand_x, rand_y), [r_i, g_i, b_i]));
+        new_cluster_lookup.insert((rand_x, rand_y), 0);
+        new_pixel_clusters.insert(0, vec![(rand_x, rand_y)]);
 
         // Compute remaining k-1 centroids
-        for _ in 0..(k - 1) {
+        for cluster_id in 0..(k - 1) {
             // Keep track of pixel with maximum distance to all existing centroids
-            let mut max_dist = ((0_u32, 0_u32), [0_u8, 0_u8, 0_u8], 0.0_f32);
+            let mut max_dist_pixel = ((0_u32, 0_u32), [0_u8, 0_u8, 0_u8], 0.0_f32);
 
             imgsim_image
                 .rgba_image()
@@ -237,26 +250,190 @@ pub fn k_means(imgsim_image: &mut ImgsimImage, imgsim_options: &ImgsimOptions) {
                     });
 
                     // If distance to closest centroid is larger than any other pixel's distance to closest centroid so far, replace
-                    if closest_centroid_dist > max_dist.2 {
-                        max_dist = ((x, y), [r_p, g_p, b_p], closest_centroid_dist)
+                    if closest_centroid_dist > max_dist_pixel.2 {
+                        max_dist_pixel = ((x, y), [r_p, g_p, b_p], closest_centroid_dist)
                     }
                 });
 
             // The pixel with the greatest distance from all other centroids is the new centroid
-            centroids.push((max_dist.0, max_dist.1));
+            centroids.push((max_dist_pixel.0, max_dist_pixel.1));
+            new_cluster_lookup.insert(max_dist_pixel.0, cluster_id + 1);
+            new_pixel_clusters.insert(cluster_id + 1, vec![max_dist_pixel.0]);
         }
         seeding_time_cuml += seeding_start.elapsed();
 
-        // STEP II:
-        if imgsim_options.debug() {
-            println!(
-                "\"{}\": Seeding in {:.2?};",
-                imgsim_image.name(),
-                seeding_time_cuml,
+        // STEP II: Naïve k-means
+        let k_means_start = Instant::now();
+
+        let mut converged: bool = false;
+        let mut iteration_count: usize = 0;
+        while !converged {
+            // To know if converged, make a copy of the old cluster map
+            let copy_old_start = Instant::now();
+            let mut old_cluster_lookup: BTreeMap<(u32, u32), usize> = BTreeMap::new();
+            old_cluster_lookup.extend(
+                new_cluster_lookup
+                    .iter()
+                    .map(|(k, v)| (k.clone(), v.clone())),
             );
+            copy_old_cuml += copy_old_start.elapsed();
+
+            let find_closest_start = Instant::now();
+
+            #[derive(Debug)]
+            struct Movement {
+                coords: (u32, u32),
+                cluster_from: Option<usize>,
+                cluster_to: usize,
+            }
+            let movement_list: Vec<Movement> = imgsim_image
+                .rgba_image()
+                .par_enumerate_pixels()
+                .map(|(x, y, pixel)| {
+                    let image::Rgba([r, g, b, _]) = *pixel;
+                    // Sort the pixel into the cluster with the closest centroid
+                    let mut min_dist = f32::MAX;
+                    let mut min_centroid_coords = (0, 0);
+                    for ((c_x, c_y), [c_r, c_g, c_b]) in &centroids {
+                        let dist = euclidean_dist(r, g, b, *c_r, *c_g, *c_b);
+                        if dist < min_dist {
+                            min_dist = dist;
+                            min_centroid_coords = (*c_x, *c_y);
+                        }
+                    }
+                    Movement {
+                        coords: (x, y),
+                        cluster_from: new_cluster_lookup.get(&(x, y)).copied(),
+                        cluster_to: new_cluster_lookup[&min_centroid_coords],
+                    }
+                })
+                .collect();
+            find_closest_cuml += find_closest_start.elapsed();
+
+            let move_pixels_start = Instant::now();
+            for movement in movement_list {
+                // Don't need to move anything if the pixel hasn't changed clusters
+                if Some(movement.cluster_to) != movement.cluster_from {
+                    // Update cluster lookup table
+                    new_cluster_lookup.insert(movement.coords, movement.cluster_to);
+
+                    // Remove value from old cluster group
+                    if let Some(cluster_from) = movement.cluster_from {
+                        if let Some(vals) = new_pixel_clusters.get_mut(&cluster_from) {
+                            let removal_index = vals
+                                .iter()
+                                .position(|(v_x, v_y)| (*v_x, *v_y) == movement.coords)
+                                .unwrap();
+                            vals.swap_remove(removal_index);
+                        }
+                    }
+
+                    // Add value to new cluster group
+                    if let Some(val) = new_pixel_clusters.get_mut(&movement.cluster_to) {
+                        val.push(movement.coords);
+                    }
+                }
+            }
+            move_pixels_cuml += move_pixels_start.elapsed();
+
+            let mut new_wcss: f32 = 0.0;
+
+            // Calculate new centroids
+            let new_centroids_start = Instant::now();
+            centroids = centroids
+                .into_iter()
+                .map(|(coords, _)| {
+                    let centroid_cluster_id = new_cluster_lookup[&coords];
+                    let (r_sum, g_sum, b_sum) = new_pixel_clusters[&centroid_cluster_id]
+                        .iter()
+                        .fold((0_u32, 0_u32, 0_u32), |(a_r, a_g, a_b), (x, y)| {
+                            let image::Rgba([r, g, b, _]) =
+                                *imgsim_image.rgba_image().get_pixel(*x, *y);
+                            (a_r + r as u32, a_g + g as u32, a_b + b as u32)
+                        });
+                    let cl_len = new_pixel_clusters[&centroid_cluster_id].len();
+                    let (r_mean, g_mean, b_mean): (f32, f32, f32) = (
+                        r_sum as f32 / cl_len as f32,
+                        g_sum as f32 / cl_len as f32,
+                        b_sum as f32 / cl_len as f32,
+                    );
+
+                    // Get pixel in cluster closest to mean & make it the new centroid
+                    let mut closest_dist = f32::MAX;
+                    let mut closest_coords: (u32, u32) = (0, 0);
+                    let mut closest_rgb: [u8; 3] = [0, 0, 0];
+                    new_pixel_clusters[&centroid_cluster_id]
+                        .iter()
+                        .for_each(|(x, y)| {
+                            let image::Rgba([r, g, b, _]) =
+                                *imgsim_image.rgba_image().get_pixel(*x, *y);
+                            let dist =
+                                euclidean_dist(r, g, b, r_mean as u8, g_mean as u8, b_mean as u8);
+                            new_wcss += dist;
+                            if dist < closest_dist {
+                                closest_coords = (*x, *y);
+                                closest_dist = dist;
+                                closest_rgb = [r, g, b];
+                            }
+                        });
+                    (closest_coords, closest_rgb)
+                })
+                .collect();
+            new_centroids_cuml += new_centroids_start.elapsed();
+
+            // Check if converged
+            converged = (|| {
+                let mut is_same = true;
+                for i in 0..imgsim_image.rgba_image().width() {
+                    for j in 0..imgsim_image.rgba_image().height() {
+                        if let Some(old_val) = old_cluster_lookup.get(&(i, j)) {
+                            if let Some(new_val) = new_cluster_lookup.get(&(i, j)) {
+                                if old_val != new_val {
+                                    // println!("[{}, {}]: {} != {}", i, j, old_val, new_val);
+                                    is_same = false;
+                                }
+                            } else {
+                                // println!("really weird and bad @ [{}, {}]", i, j);
+                                return false;
+                            }
+                        } else if let Some(_) = new_cluster_lookup.get(&(i, j)) {
+                            return false;
+                        }
+                    }
+                }
+                return is_same;
+            })();
+
+            iteration_count += 1;
+
+            if !converged {
+                // TODO REMOVE DEBUG
+                println!("not converged : {}", iteration_count);
+            } else if imgsim_options.debug() == true {
+                println!(
+                    "\t\"{}\": Converged @ k={} in {} iterations.",
+                    imgsim_image.name(),
+                    k,
+                    iteration_count
+                );
+            }
         }
+
+        k_means_cuml += k_means_start.elapsed();
     }
 
+    if imgsim_options.debug() {
+        println!(
+            "\"{}\":\nSeeding in {:.2?};\nk-means in {:.2?};\n\tcopy old in {:.2?};\n\tfind closest in {:.2?};\n\tmove pixels in {:.2?};\n\tnew centroids in {:.2?};",
+            imgsim_image.name(),
+            seeding_time_cuml,
+            k_means_cuml,
+            copy_old_cuml,
+            find_closest_cuml,
+            move_pixels_cuml,
+            new_centroids_cuml,
+        );
+    }
     *imgsim_image.cluster_lookup_mut() = new_cluster_lookup;
     *imgsim_image.pixel_clusters_mut() = new_pixel_clusters;
 }

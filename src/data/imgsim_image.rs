@@ -139,7 +139,8 @@ impl ImgsimImage {
                     }),
             );
         let elapsed_time = start_time.elapsed();
-        if imgsim_options.debug() || imgsim_options.verbose() {
+        if (imgsim_options.debug() || imgsim_options.verbose()) && self.pixeldist_factors.len() > 0
+        {
             println!(
                 "\"{}\": Built {} factors in {:.2?}.",
                 self.name,
