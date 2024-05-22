@@ -197,6 +197,9 @@ pub fn k_means(imgsim_image: &mut ImgsimImage, imgsim_options: &ImgsimOptions) {
     // Seeding: k-means++ (https://en.wikipedia.org/wiki/K-means%2B%2B)
     // Naïve k-means
 
+    // If k-means cycles for this many iterations, return
+    const MAX_CYCLES: usize = 30;
+
     // Timers for debugging
     let mut seeding_time_cuml = Duration::new(0, 0);
     let mut k_means_cuml = Duration::new(0, 0);
@@ -267,6 +270,7 @@ pub fn k_means(imgsim_image: &mut ImgsimImage, imgsim_options: &ImgsimOptions) {
 
         let mut converged: bool = false;
         let mut iteration_count: usize = 0;
+        let mut wcss_history: Vec<f32> = Vec::new();
         while !converged {
             // To know if converged, make a copy of the old cluster map
             let copy_old_start = Instant::now();
@@ -278,14 +282,19 @@ pub fn k_means(imgsim_image: &mut ImgsimImage, imgsim_options: &ImgsimOptions) {
             );
             copy_old_cuml += copy_old_start.elapsed();
 
+            // Reset clusters
+            new_cluster_lookup.clear();
+            new_pixel_clusters.clear();
+
             let find_closest_start = Instant::now();
 
             #[derive(Debug)]
             struct Movement {
                 coords: (u32, u32),
-                cluster_from: Option<usize>,
                 cluster_to: usize,
             }
+
+            // Assign each point to closest centroid
             let movement_list: Vec<Movement> = imgsim_image
                 .rgba_image()
                 .par_enumerate_pixels()
@@ -303,8 +312,10 @@ pub fn k_means(imgsim_image: &mut ImgsimImage, imgsim_options: &ImgsimOptions) {
                     }
                     Movement {
                         coords: (x, y),
-                        cluster_from: new_cluster_lookup.get(&(x, y)).copied(),
-                        cluster_to: new_cluster_lookup[&min_centroid_coords],
+                        cluster_to: centroids
+                            .iter()
+                            .position(|(coords, _)| *coords == min_centroid_coords)
+                            .unwrap(),
                     }
                 })
                 .collect();
@@ -312,26 +323,13 @@ pub fn k_means(imgsim_image: &mut ImgsimImage, imgsim_options: &ImgsimOptions) {
 
             let move_pixels_start = Instant::now();
             for movement in movement_list {
-                // Don't need to move anything if the pixel hasn't changed clusters
-                if Some(movement.cluster_to) != movement.cluster_from {
-                    // Update cluster lookup table
-                    new_cluster_lookup.insert(movement.coords, movement.cluster_to);
-
-                    // Remove value from old cluster group
-                    if let Some(cluster_from) = movement.cluster_from {
-                        if let Some(vals) = new_pixel_clusters.get_mut(&cluster_from) {
-                            let removal_index = vals
-                                .iter()
-                                .position(|(v_x, v_y)| (*v_x, *v_y) == movement.coords)
-                                .unwrap();
-                            vals.swap_remove(removal_index);
-                        }
-                    }
-
-                    // Add value to new cluster group
-                    if let Some(val) = new_pixel_clusters.get_mut(&movement.cluster_to) {
-                        val.push(movement.coords);
-                    }
+                // Update cluster lookup table
+                new_cluster_lookup.insert(movement.coords, movement.cluster_to);
+                // Add value to new cluster group
+                if let Some(val) = new_pixel_clusters.get_mut(&movement.cluster_to) {
+                    val.push(movement.coords);
+                } else {
+                    new_pixel_clusters.insert(movement.cluster_to, vec![movement.coords]);
                 }
             }
             move_pixels_cuml += move_pixels_start.elapsed();
@@ -405,17 +403,57 @@ pub fn k_means(imgsim_image: &mut ImgsimImage, imgsim_options: &ImgsimOptions) {
             })();
 
             iteration_count += 1;
+            wcss_history.push(new_wcss);
 
-            if !converged {
-                // TODO REMOVE DEBUG
-                println!("not converged : {}", iteration_count);
-            } else if imgsim_options.debug() == true {
-                println!(
-                    "\t\"{}\": Converged @ k={} in {} iterations.",
-                    imgsim_image.name(),
-                    k,
-                    iteration_count
-                );
+            let wcslen = wcss_history.len();
+            // Check to see if stuck in cycle.
+            // No point in checking if the number of iterations is less than the max allowed cycles.
+            // Only return when on the lower-WCSS step of the cycle.
+            if wcslen >= MAX_CYCLES && (wcss_history[wcslen - 1] < wcss_history[wcslen - 2]) {
+                let mut list_a: Vec<f32> =
+                    Vec::with_capacity((wcslen as f32 / 2.0_f32).ceil() as usize);
+                let mut list_b: Vec<f32> =
+                    Vec::with_capacity((wcslen as f32 / 2.0_f32).ceil() as usize);
+                for i in 0..MAX_CYCLES {
+                    if i % 2 == 0 {
+                        list_a.push(wcss_history[(wcslen - 1) - i]);
+                    } else {
+                        list_b.push(wcss_history[(wcslen - 1) - i]);
+                    }
+                }
+
+                let first_a = list_a[0];
+                let first_b = list_b[0];
+                // If the last MAX_CYCLES cycles were simply going back and forth between two values, then converged
+                if list_a.iter().all(|wcss| *wcss == first_a)
+                    && list_b.iter().all(|wcss| *wcss == first_b)
+                {
+                    if imgsim_options.debug() == true {
+                        println!("Converged after {}-length cycle", MAX_CYCLES);
+                    }
+                    converged = true;
+                }
+            }
+            if imgsim_options.debug() == true {
+                if !converged {
+                    // println!(
+                    //     "\tnot converged : {} ({} -> {})",
+                    //     iteration_count,
+                    //     if wcslen > 1 {
+                    //         wcss_history[wcslen - 2]
+                    //     } else {
+                    //         0.0
+                    //     },
+                    //     wcss_history[wcslen - 1]
+                    // );
+                } else {
+                    println!(
+                        "\"{}\": Converged @ k={} in {} iterations.",
+                        imgsim_image.name(),
+                        k,
+                        iteration_count
+                    );
+                }
             }
         }
 
@@ -424,7 +462,7 @@ pub fn k_means(imgsim_image: &mut ImgsimImage, imgsim_options: &ImgsimOptions) {
 
     if imgsim_options.debug() {
         println!(
-            "\"{}\":\nSeeding in {:.2?};\nk-means in {:.2?};\n\tcopy old in {:.2?};\n\tfind closest in {:.2?};\n\tmove pixels in {:.2?};\n\tnew centroids in {:.2?};",
+            "\"{}\":\nSeeding in {:.2?};\nk-means in {:.2?} {{\n\tcopy old in {:.2?},\n\tfind closest in {:.2?},\n\tmove pixels in {:.2?},\n\tnew centroids in {:.2?},\n}}",
             imgsim_image.name(),
             seeding_time_cuml,
             k_means_cuml,
