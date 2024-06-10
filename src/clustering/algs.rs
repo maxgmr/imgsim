@@ -83,10 +83,13 @@ pub fn agglomerative(imgsim_image: &mut ImgsimImage, imgsim_options: &ImgsimOpti
         .rgba_image()
         .enumerate_pixels()
         .for_each(|(x, y, _)| {
-            if let Some(_) = new_cluster_lookup.insert((x, y), cluster_id) {
+            if new_cluster_lookup.insert((x, y), cluster_id).is_some() {
                 panic!("Tried to add {:?} to lookup table twice", (x, y))
             }
-            if let Some(_) = new_pixel_clusters.insert(cluster_id, vec![(x, y)]) {
+            if new_pixel_clusters
+                .insert(cluster_id, vec![(x, y)])
+                .is_some()
+            {
                 panic!("Tried to add {} to new_pixel_clusters twice", cluster_id)
             }
             cluster_id += 1;
@@ -275,11 +278,7 @@ pub fn k_means(imgsim_image: &mut ImgsimImage, imgsim_options: &ImgsimOptions) {
             // To know if converged, make a copy of the old cluster map
             let copy_old_start = Instant::now();
             let mut old_cluster_lookup: BTreeMap<(u32, u32), usize> = BTreeMap::new();
-            old_cluster_lookup.extend(
-                new_cluster_lookup
-                    .iter()
-                    .map(|(k, v)| (k.clone(), v.clone())),
-            );
+            old_cluster_lookup.extend(new_cluster_lookup.iter().map(|(k, v)| (*k, *v)));
             copy_old_cuml += copy_old_start.elapsed();
 
             // Reset clusters
@@ -394,12 +393,12 @@ pub fn k_means(imgsim_image: &mut ImgsimImage, imgsim_options: &ImgsimOptions) {
                                 // println!("really weird and bad @ [{}, {}]", i, j);
                                 return false;
                             }
-                        } else if let Some(_) = new_cluster_lookup.get(&(i, j)) {
+                        } else if new_cluster_lookup.contains_key(&(i, j)) {
                             return false;
                         }
                     }
                 }
-                return is_same;
+                is_same
             })();
 
             iteration_count += 1;
@@ -428,13 +427,13 @@ pub fn k_means(imgsim_image: &mut ImgsimImage, imgsim_options: &ImgsimOptions) {
                 if list_a.iter().all(|wcss| *wcss == first_a)
                     && list_b.iter().all(|wcss| *wcss == first_b)
                 {
-                    if imgsim_options.debug() == true {
+                    if imgsim_options.debug() {
                         println!("Converged after {}-length cycle", MAX_CYCLES);
                     }
                     converged = true;
                 }
             }
-            if imgsim_options.debug() == true {
+            if imgsim_options.debug() {
                 if !converged {
                     // println!(
                     //     "\tnot converged : {} ({} -> {})",
