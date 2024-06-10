@@ -26,10 +26,10 @@ pub fn get_similarities(
 ) -> ImageSimilarityMatrix {
     let mut output_matrix = ImageSimilarityMatrix::from(images);
     match imgsim_options.similarity_alg() {
-        SimilarityAlg::ColourSim => output_matrix.colour_sim(&images, &imgsim_options),
-        SimilarityAlg::ClusterSize => output_matrix.cluster_size(&images, &imgsim_options),
+        SimilarityAlg::ColourSim => output_matrix.colour_sim(images, imgsim_options),
+        SimilarityAlg::ClusterSize => output_matrix.cluster_size(images, imgsim_options),
     };
-    return output_matrix;
+    output_matrix
 }
 
 /// A matrix of [ImgsimImage] pairings and their similarities.
@@ -39,7 +39,7 @@ pub struct ImageSimilarityMatrix {
 }
 impl ImageSimilarityMatrix {
     /// Builds an empty [ImageSimilarityMatrix] out of a provided list of images.
-    fn from(images: &Vec<ImgsimImage>) -> ImageSimilarityMatrix {
+    fn from(images: &[ImgsimImage]) -> ImageSimilarityMatrix {
         let combinations = (images.len().pow(2) - images.len()) / 2;
         let mut matrix: HashMap<(String, String), Option<f32>> =
             HashMap::with_capacity(combinations);
@@ -91,8 +91,7 @@ impl ImageSimilarityMatrix {
             _ => cmp::Ordering::Equal,
         });
 
-        println!("");
-        println!("======Most-Similar Images======");
+        println!("\n======Most-Similar Images======");
         list.iter().for_each(|((image_a, image_b), similarity)| {
             println!(
                 "[\"{}\" & \"{}\"]: {}",
@@ -152,7 +151,7 @@ impl ImageSimilarityMatrix {
                         });
                     }
                 }
-                if clusters_info.len() == 0 {
+                if clusters_info.is_empty() {
                     eprintln!(
                         "Warning: \"{}\" has no clusters above {}% of the image. Cannot compare.",
                         image.name(),
@@ -182,7 +181,7 @@ impl ImageSimilarityMatrix {
                     .find(|(name, _)| *name == image_b_name)
                     .unwrap()
                     .1;
-                if clusters_info_a.len() > 0 && clusters_info_b.len() > 0 {
+                if !clusters_info_a.is_empty() && clusters_info_b.is_empty() {
                     // Calculate Similarity
                     let mut new_similarity = 0.0;
                     let mut i = 0;
@@ -282,7 +281,7 @@ impl ImageSimilarityMatrix {
                         });
                     }
                 }
-                if clusters_info.len() == 0 {
+                if clusters_info.is_empty() {
                     eprintln!(
                         "Warning: \"{}\" has no clusters above {}% of the image. Cannot compare.",
                         image.name(),
@@ -312,7 +311,7 @@ impl ImageSimilarityMatrix {
                     .find(|(name, _)| *name == image_b_name)
                     .unwrap()
                     .1;
-                if clusters_info_a.len() > 0 && clusters_info_b.len() > 0 {
+                if !clusters_info_a.is_empty() && !clusters_info_b.is_empty() {
                     let mut new_similarity = 0.0;
                     let mut count = 0;
                     let mut i = 0;
@@ -349,6 +348,7 @@ impl ImageSimilarityMatrix {
     }
 }
 
+#[allow(clippy::too_many_arguments)]
 fn avg_colour_sim(r_a: u8, g_a: u8, b_a: u8, a_a: u8, r_b: u8, g_b: u8, b_b: u8, a_b: u8) -> f32 {
     let max_dist: f32 = 510.0;
     fn delta_sq(a: u8, b: u8) -> f32 {
@@ -358,9 +358,7 @@ fn avg_colour_sim(r_a: u8, g_a: u8, b_a: u8, a_a: u8, r_b: u8, g_b: u8, b_b: u8,
     let delta_g_sq = delta_sq(g_a, g_b);
     let delta_b_sq = delta_sq(b_a, b_b);
     let delta_a_sq = delta_sq(a_a, a_b);
-    let ans =
-        (((delta_r_sq + delta_g_sq + delta_b_sq + delta_a_sq).sqrt() / max_dist) - 0.5) * -2.0;
-    return ans;
+    (((delta_r_sq + delta_g_sq + delta_b_sq + delta_a_sq).sqrt() / max_dist) - 0.5) * -2.0
 }
 
 fn proportional_similarity_coords((x_a, y_a): &(f32, f32), (x_b, y_b): &(f32, f32)) -> f32 {

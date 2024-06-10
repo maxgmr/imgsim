@@ -2,7 +2,6 @@
 //! * Pixel distance
 //! * Pixel clustering
 //! * Image comparison
-
 #![warn(missing_docs)]
 
 use std::fmt::Debug;

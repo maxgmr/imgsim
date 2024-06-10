@@ -100,7 +100,7 @@ impl ImgsimOptions {
         };
 
         // Default to working dir
-        if imgsim_options.args.input_dir.to_str().unwrap().len() == 0 {
+        if imgsim_options.args.input_dir.to_str().unwrap().is_empty() {
             imgsim_options.args.input_dir = working_directory
         }
 
@@ -123,7 +123,7 @@ impl ImgsimOptions {
                 }
                 return Ok(Some(PathBuf::from(cli_arg_unwrapped)));
             };
-            return Ok(None);
+            Ok(None)
         }
 
         // Get input_dir arg from cli and update imgsim_options if provided
@@ -226,7 +226,7 @@ impl ImgsimOptions {
             imgsim_options.args.similarity_alg
         );
         println!("=================================");
-        return Ok(imgsim_options);
+        Ok(imgsim_options)
     }
 
     /// Return whether or not any discouraged options combinations have been selected.
@@ -237,7 +237,7 @@ impl ImgsimOptions {
                 problems.push(String::from("The max height or max width of the image is above 200 pixels, the maximum recommended size for the k-means clustering algorithm."));
             }
         }
-        if problems.len() > 0 {
+        if !problems.is_empty() {
             Some(problems)
         } else {
             None

@@ -44,7 +44,7 @@ pub fn euclidean(pixel_a: &Rgba<u8>, pixel_b: &Rgba<u8>) -> f32 {
     let bg = pixel_b[1] as f32;
     let bb = pixel_b[2] as f32;
     if pixel_a[3] != 0 && pixel_b[3] != 0 {
-        ((((ar - br).powf(2.0) + (ag - bg).powf(2.0) + (ab - bb).powf(2.0)) as f32)
+        (((ar - br).powf(2.0) + (ag - bg).powf(2.0) + (ab - bb).powf(2.0))
             / max_diff_for_normalisation)
             .sqrt()
     } else {
@@ -62,7 +62,7 @@ pub fn redmean(pixel_a: &Rgba<u8>, pixel_b: &Rgba<u8>) -> f32 {
     let bb = pixel_b[2] as f32;
 
     if pixel_a[3] != 0 && pixel_b[3] != 0 {
-        let rmean = (ar + br) as f32 / 2 as f32;
+        let rmean = (ar + br) / 2_f32;
 
         let r_multiple = 2.0 + (rmean / 255.0);
         let g_multiple = 4.0;
@@ -72,9 +72,7 @@ pub fn redmean(pixel_a: &Rgba<u8>, pixel_b: &Rgba<u8>) -> f32 {
         let delta_g_sq = (ag - bg).powf(2.0);
         let delta_b_sq = (ab - bb).powf(2.0);
 
-        (((r_multiple * delta_r_sq as f32)
-            + (g_multiple * delta_g_sq as f32)
-            + (b_multiple * delta_b_sq as f32))
+        (((r_multiple * delta_r_sq) + (g_multiple * delta_g_sq) + (b_multiple * delta_b_sq))
             / max_diff_for_normalisation)
             .sqrt()
     } else {
@@ -122,7 +120,7 @@ mod test {
     fn euclidean_misc() {
         assert_eq!(
             euclidean(&PIXEL_A, &PIXEL_B),
-            (3626.0 as f32 / 195075.0 as f32).sqrt()
+            (3626.0_f32 / 195075.0_f32).sqrt()
         );
     }
 
@@ -140,7 +138,7 @@ mod test {
     fn redmean_misc() {
         assert_eq!(
             redmean(&PIXEL_A, &PIXEL_B),
-            (2347870.0 as f32 / 149232375 as f32).sqrt()
+            (2347870.0_f32 / 149232375_f32).sqrt()
         );
     }
 }

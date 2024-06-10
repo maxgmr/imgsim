@@ -22,7 +22,7 @@ pub enum PersistenceError {
     DiscouragedSettingsError(String),
 }
 
-fn path_buf_as_str<'a>(path_buf: &'a Option<PathBuf>) -> &'a str {
+fn path_buf_as_str(path_buf: &Option<PathBuf>) -> &str {
     return match path_buf {
         Some(buf) => buf.to_str().unwrap_or(""),
         _ => "",

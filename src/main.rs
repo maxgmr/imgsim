@@ -55,7 +55,7 @@ fn main() {
     let imgsim_options = match ImgsimOptions::build(match_result) {
         Ok(imgsim_options) => imgsim_options,
         Err(persistence_error) => {
-            eprintln!("{}", persistence_error.to_string());
+            eprintln!("{}", persistence_error);
             process::exit(1);
         }
     };
@@ -63,7 +63,7 @@ fn main() {
     let mut images = match load_images(&imgsim_options) {
         Ok(images) => images,
         Err(persistence_error) => {
-            eprintln!("{}", persistence_error.to_string());
+            eprintln!("{}", persistence_error);
             process::exit(1);
         }
     };
