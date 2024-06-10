@@ -1,6 +1,7 @@
+#![warn(missing_docs)]
+
 use image::{ImageError, RgbaImage};
 use rayon::prelude::*;
-#[warn(missing_docs)]
 use regex::Regex;
 use std::{collections::BTreeMap, path::PathBuf, time::Instant};
 
@@ -64,12 +65,12 @@ impl ImgsimImage {
                 eprintln!(
                     "Warning @ {}: {}",
                     file_name.to_str().unwrap_or("unknown file"),
-                    image_error.to_string()
+                    image_error
                 );
                 None
             }
             (_, Err(image_error)) => {
-                eprintln!("Warning: {}", image_error.to_string());
+                eprintln!("Warning: {}", image_error);
                 None
             }
             (_, Ok(_)) => {
@@ -99,7 +100,7 @@ impl ImgsimImage {
                                 temp_vec.push(PixeldistFactor::new(
                                     (x, y),
                                     (x + 1, y),
-                                    get_pixeldist(&pixel, &right_neighbour, &imgsim_options),
+                                    get_pixeldist(pixel, right_neighbour, imgsim_options),
                                 ))
                             }
                             // Bottom-right neighbour
@@ -109,7 +110,7 @@ impl ImgsimImage {
                                 temp_vec.push(PixeldistFactor::new(
                                     (x, y),
                                     (x + 1, y + 1),
-                                    get_pixeldist(&pixel, &b_right_neighbour, &imgsim_options),
+                                    get_pixeldist(pixel, b_right_neighbour, imgsim_options),
                                 ))
                             }
                             // Bottom neighbour
@@ -119,7 +120,7 @@ impl ImgsimImage {
                                 temp_vec.push(PixeldistFactor::new(
                                     (x, y),
                                     (x, y + 1),
-                                    get_pixeldist(&pixel, &bottom_neighbour, &imgsim_options),
+                                    get_pixeldist(pixel, bottom_neighbour, imgsim_options),
                                 ))
                             }
                             // Bottom-left neighbour
@@ -130,7 +131,7 @@ impl ImgsimImage {
                                     temp_vec.push(PixeldistFactor::new(
                                         (x, y),
                                         (x - 1, y + 1),
-                                        get_pixeldist(&pixel, &b_left_neighbour, &imgsim_options),
+                                        get_pixeldist(pixel, b_left_neighbour, imgsim_options),
                                     ))
                                 }
                             }
@@ -139,7 +140,8 @@ impl ImgsimImage {
                     }),
             );
         let elapsed_time = start_time.elapsed();
-        if (imgsim_options.debug() || imgsim_options.verbose()) && self.pixeldist_factors.len() > 0
+        if (imgsim_options.debug() || imgsim_options.verbose())
+            && !self.pixeldist_factors.is_empty()
         {
             println!(
                 "\"{}\": Built {} factors in {:.2?}.",
@@ -161,7 +163,7 @@ impl ImgsimImage {
                 self.name,
                 self.pixel_clusters
                     .iter()
-                    .filter(|(_, v)| v.len() > 0)
+                    .filter(|(_, v)| !v.is_empty())
                     .collect::<BTreeMap<&usize, &Vec<(u32, u32)>>>()
                     .len(),
                 elapsed_time
