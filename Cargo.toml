@@ -7,9 +7,13 @@ description = "A tool that finds similar images through various methods."
 readme = "README.md"
 repository = "https://github.com/maxgmr/imgsim"
 license-file = "LICENSE"
+build = "build.rs"
 
 [dependencies]
 clap = { version = "4.5", features = ["cargo", "derive", "string"] }
+
+[build-dependencies]
+vergen = { version = "9.0", features = ["build", "cargo"] }
 
 [dev-dependencies]
 pretty_assertions = "1.4.0"
