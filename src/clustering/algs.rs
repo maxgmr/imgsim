@@ -216,7 +216,12 @@ pub fn k_means(imgsim_image: &mut ImgsimImage, imgsim_options: &ImgsimOptions) {
     // This replaces the placeholder pixel_clusters
     let mut new_pixel_clusters: BTreeMap<usize, Vec<(u32, u32)>> = BTreeMap::new();
 
-    let mut silhouettes: Vec<f32> = Vec::with_capacity(imgsim_options.max_k());
+    // Current best lookup table
+    let mut best_cluster_lookup: BTreeMap<(u32, u32), usize> = BTreeMap::new();
+    // Current best pixel clusters
+    let mut best_pixel_clusters: BTreeMap<usize, Vec<(u32, u32)>> = BTreeMap::new();
+
+    let mut silhouette: Vec<f32> = Vec::with_capacity(imgsim_options.max_k());
 
     // Iterate through possible k numbers until a reasonable silhouette is achieved
     for k in 2..(imgsim_options.max_k() + 1) {
@@ -471,6 +476,10 @@ pub fn k_means(imgsim_image: &mut ImgsimImage, imgsim_options: &ImgsimOptions) {
             new_centroids_cuml,
         );
     }
+
+    // STEP III: Silhouette
+    imgsim_image.rgba_image().par_pixels();
+
     *imgsim_image.cluster_lookup_mut() = new_cluster_lookup;
     *imgsim_image.pixel_clusters_mut() = new_pixel_clusters;
 }
