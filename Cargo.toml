@@ -9,6 +9,7 @@ repository = "https://github.com/maxgmr/imgsim"
 license-file = "LICENSE"
 
 [dependencies]
+clap = { version = "4.5", features = ["cargo", "derive", "string"] }
 
 [dev-dependencies]
 pretty_assertions = "1.4.0"
