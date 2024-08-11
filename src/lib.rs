@@ -3,3 +3,6 @@
 
 pub mod cli;
 pub mod utils;
+
+// Re-exports
+pub use cli::arg_parser::Cli;
