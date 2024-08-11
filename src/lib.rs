@@ -2,7 +2,6 @@
 //! * Pixel distance
 //! * Pixel clustering
 //! * Image comparison
-
 #![warn(missing_docs)]
 
 use std::fmt::Debug;
@@ -19,6 +18,7 @@ pub use persistence::options::ImgsimOptions;
 
 pub use data::helpers;
 pub use data::imgsim_image::{ImgsimImage, PixeldistFactor};
+pub use data::kd_tree;
 
 pub use pixeldist::algs::{get_pixeldist, PixeldistAlg};
 

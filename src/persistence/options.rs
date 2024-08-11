@@ -20,6 +20,12 @@ struct ColoursimOptions {
 }
 
 #[derive(Debug, Deserialize)]
+struct KmeansOptions {
+    max_k: usize,
+    silhouette_threshold: f32,
+}
+
+#[derive(Debug, Deserialize)]
 struct AgglomerativeOptions {
     tolerance: f32,
 }
@@ -31,6 +37,10 @@ struct Settings {
     verbose: bool,
     max_width: u32,
     max_height: u32,
+    #[serde(default)]
+    skip_pixelsim: bool,
+    #[serde(default)]
+    force: bool,
 }
 
 #[derive(Debug, Deserialize)]
@@ -49,6 +59,7 @@ pub struct ImgsimOptions {
     args: Args,
     settings: Settings,
     agglomerative_options: AgglomerativeOptions,
+    kmeans_options: KmeansOptions,
     coloursim_options: ColoursimOptions,
     clustersize_options: ClustersizeOptions,
 }
@@ -89,7 +100,7 @@ impl ImgsimOptions {
         };
 
         // Default to working dir
-        if imgsim_options.args.input_dir.to_str().unwrap().len() == 0 {
+        if imgsim_options.args.input_dir.to_str().unwrap().is_empty() {
             imgsim_options.args.input_dir = working_directory
         }
 
@@ -112,7 +123,7 @@ impl ImgsimOptions {
                 }
                 return Ok(Some(PathBuf::from(cli_arg_unwrapped)));
             };
-            return Ok(None);
+            Ok(None)
         }
 
         // Get input_dir arg from cli and update imgsim_options if provided
@@ -180,11 +191,33 @@ impl ImgsimOptions {
         // update verbose
         imgsim_options.settings.verbose = arg_matches.get_flag("verbose");
 
+        // update force
+        imgsim_options.settings.force = arg_matches.get_flag("force");
+
         // Debug imgsim_options
         if imgsim_options.debug() {
             println!("imgsim_options updated by cli args:");
             dbg!(&imgsim_options);
         }
+
+        // If any chosen algorithms need to change any other settings, change them
+        if let ClusteringAlg::KMeans = imgsim_options.args.clustering_alg {
+            imgsim_options.settings.skip_pixelsim = true
+        }
+
+        // If any discouraged settings combinations are chosen, stop and warn the user if the --force flag is not activated
+        if let Some(messages) = imgsim_options.discouraged_options() {
+            if imgsim_options.settings.force {
+                messages.iter().for_each(|message| {
+                    eprintln!("Discouraged Settings Warning: {}", message);
+                });
+            } else {
+                return Err(PersistenceError::DiscouragedSettingsError(String::from(
+                    &messages[0],
+                )));
+            }
+        }
+
         println!("=======Selected Algorithms=======");
         println!(
             "Pixel Distance:   {:?}\nPixel Clustering: {:?}\nImage Similarity: {:?}",
@@ -193,7 +226,22 @@ impl ImgsimOptions {
             imgsim_options.args.similarity_alg
         );
         println!("=================================");
-        return Ok(imgsim_options);
+        Ok(imgsim_options)
+    }
+
+    /// Return whether or not any discouraged options combinations have been selected.
+    pub fn discouraged_options(&self) -> Option<Vec<String>> {
+        let mut problems = Vec::new();
+        if let ClusteringAlg::KMeans = self.clustering_alg() {
+            if self.max_height() > 200 || self.max_width() > 200 {
+                problems.push(String::from("The max height or max width of the image is above 200 pixels, the maximum recommended size for the k-means clustering algorithm."));
+            }
+        }
+        if !problems.is_empty() {
+            Some(problems)
+        } else {
+            None
+        }
     }
 
     /// Return the directory of images imgsim compares.
@@ -246,6 +294,16 @@ impl ImgsimOptions {
         self.agglomerative_options.tolerance
     }
 
+    ///  Return the max number of clusters to attempt for k-means clustering.
+    pub fn max_k(&self) -> usize {
+        self.kmeans_options.max_k
+    }
+
+    /// Return the average silhouette value past which k-means clustering returns early.
+    pub fn silhouette_threshold(&self) -> f32 {
+        self.kmeans_options.silhouette_threshold
+    }
+
     /// Return the cluster cutoff point for the coloursim similarity algorithm.
     pub fn coloursim_cluster_cutoff(&self) -> f32 {
         self.coloursim_options.coloursim_cluster_cutoff
@@ -254,5 +312,15 @@ impl ImgsimOptions {
     /// Return the cluster cutoff point for the clustersize similarity algorithm.
     pub fn clustersize_cluster_cutoff(&self) -> f32 {
         self.clustersize_options.clustersize_cluster_cutoff
+    }
+
+    /// Return whether or not the pixelsim algorithm should be skipped.
+    pub fn skip_pixelsim(&self) -> bool {
+        self.settings.skip_pixelsim
+    }
+
+    /// Return whether or not the --force flag was activated.
+    pub fn force(&self) -> bool {
+        self.settings.force
     }
 }

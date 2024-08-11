@@ -10,8 +10,7 @@ pub fn hsl_to_rgb(h: f32, s: f32, l: f32) -> (u8, u8, u8) {
         let k_min: i16 = vec![k as i16 - 3, 9 - k as i16, 1]
             .into_iter()
             .min()
-            .unwrap()
-            .into();
+            .unwrap();
         let k_max: i16 = if k_min > -1 { k_min } else { -1 };
         let colour = l - a * k_max as f32;
         (255.0 * colour).round() as u8

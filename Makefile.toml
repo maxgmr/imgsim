@@ -4,7 +4,7 @@ args = ["build", "--release"]
 
 [tasks.clean]
 command = "cargo"
-args = ["clean", "--release"]
+args = ["clean"]
 
 [tasks.createconfig]
 script = '''

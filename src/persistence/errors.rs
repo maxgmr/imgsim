@@ -18,9 +18,11 @@ pub enum PersistenceError {
     NotDirectoryError(Option<PathBuf>),
     /// Sent when an unknown option is given.
     UnknownOptionError(String),
+    /// Sent when discouraged settings are chosen without the "force" flag enabled.
+    DiscouragedSettingsError(String),
 }
 
-fn path_buf_as_str<'a>(path_buf: &'a Option<PathBuf>) -> &'a str {
+fn path_buf_as_str(path_buf: &Option<PathBuf>) -> &str {
     return match path_buf {
         Some(buf) => buf.to_str().unwrap_or(""),
         _ => "",
@@ -67,6 +69,9 @@ impl fmt::Display for PersistenceError {
                     "UnknownOptionError: Given option \"{}\" does not match any known values.",
                     string
                 )
+            }
+            Self::DiscouragedSettingsError(string) => {
+                write!(f, "DiscouragedSettingsError: {}\nUse the '--force' option to run using these settings anyways.", string)
             }
         }
     }

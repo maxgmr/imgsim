@@ -20,6 +20,12 @@ max_height = 1000
 # Adjacent pixels with a distance larger than (tolerance * 100)% of pixel distances will not be merged into a single cluster.
 tolerance = 0.6
 
+[kmeans_options]
+# The maximum number of clusters to try. A higher number means slower computation time.
+max_k = 10
+# If the average silhouette is higher than this level, then return before reaching max_k. May speed up processing time. Set to '1.0' to never return early.
+silhouette_threshold = 0.7
+
 [coloursim_options]
 # Clusters which constitute less than (coloursim_cluster_cutoff * 100)% of the image's pixels will not be considered for similarity calculation.
 coloursim_cluster_cutoff = 0.1

@@ -19,11 +19,11 @@ pub fn load_images(imgsim_options: &ImgsimOptions) -> Result<Vec<ImgsimImage>, P
             })
         })
         .collect::<Vec<ImgsimImage>>();
-    if images.len() == 0 {
+    if images.is_empty() {
         Err(PersistenceError::EmptyInputDirError(Some(PathBuf::from(
             imgsim_options.input_dir(),
         ))))
     } else {
-        return Ok(images);
+        Ok(images)
     }
 }
