@@ -1,6 +1,6 @@
 [package]
 name = "imgsim"
-version = "0.4.8"
+version = "1.0.0"
 edition = "2021"
 authors = ["Max Gilmour"]
 description = "A tool that finds similar images through various methods."
@@ -9,16 +9,6 @@ repository = "https://github.com/maxgmr/imgsim"
 license-file = "LICENSE"
 
 [dependencies]
-clap = { version = "4.5.4", features = ["cargo"] }
-serde = { version = "1.0.201", features = ["derive"]}
-toml = "0.8.12"
-strum = "0.26"
-strum_macros = "0.26"
-rayon = "1.10.0"
-image = {version = "0.25.1", features = ["rayon"]}
-regex = "1.10.4"
-home = "0.5.9"
-rand = "0.8.5"
 
 [dev-dependencies]
 pretty_assertions = "1.4.0"
